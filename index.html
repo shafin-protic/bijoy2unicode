@@ -1,0 +1,3417 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BanglaBridge — Smart Bijoy (ANSI) ↔ Unicode Converter</title>
+
+  <!-- Google Fonts: Inter, Hind Siliguri, Noto Sans Bengali & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ==========================================================================
+       DESIGN TOKENS & RESET
+       ========================================================================== */
+    :root {
+      --bg-page: #f8fafc;
+      --bg-surface: #ffffff;
+      --bg-subtle: #f1f5f9;
+      --bg-subtle-hover: #e2e8f0;
+      --border-color: #e2e8f0;
+      --border-strong: #cbd5e1;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #64748b;
+
+      --emerald-50: #ecfdf5;
+      --emerald-100: #d1fae5;
+      --emerald-200: #a7f3d0;
+      --emerald-500: #10b981;
+      --emerald-600: #059669;
+      --emerald-700: #047857;
+      --emerald-800: #065f46;
+
+      --amber-50: #fffbeb;
+      --amber-100: #fef3c7;
+      --amber-200: #fde68a;
+      --amber-300: #fcd34d;
+      --amber-500: #f59e0b;
+      --amber-800: #92400e;
+      --amber-900: #78350f;
+
+      --indigo-50: #eef2ff;
+      --indigo-500: #6366f1;
+      --indigo-600: #4f46e5;
+
+      --purple-50: #faf5ff;
+      --purple-200: #e9d5ff;
+      --purple-500: #a855f7;
+      --purple-700: #7e22ce;
+
+      --sky-50: #f0f9ff;
+      --sky-100: #e0f2fe;
+      --sky-200: #bae6fd;
+      --sky-500: #0ea5e9;
+      --sky-700: #0369a1;
+      --sky-900: #0c4a6e;
+
+      --rose-50: #fff1f2;
+      --rose-600: #e11d48;
+
+      --shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.08), 0 2px 4px -2px rgba(15, 23, 42, 0.05);
+      --shadow-xl: 0 20px 25px -5px rgba(15, 23, 42, 0.15), 0 8px 10px -6px rgba(15, 23, 42, 0.1);
+
+      --radius-md: 0.5rem;
+      --radius-lg: 0.75rem;
+      --radius-xl: 1rem;
+      --radius-full: 9999px;
+
+      --font-sans: 'Inter', 'Noto Sans Bengali', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-unicode: 'Noto Sans Bengali', 'Hind Siliguri', 'Inter', sans-serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    html.dark {
+      --bg-page: #0b1120;
+      --bg-surface: #111827;
+      --bg-subtle: #1e293b;
+      --bg-subtle-hover: #334155;
+      --border-color: #1f2937;
+      --border-strong: #374151;
+      --text-primary: #f1f5f9;
+      --text-secondary: #cbd5e1;
+      --text-muted: #94a3b8;
+
+      --emerald-50: rgba(16, 185, 129, 0.14);
+      --emerald-100: rgba(16, 185, 129, 0.22);
+      --emerald-200: rgba(16, 185, 129, 0.35);
+      --emerald-700: #34d399;
+      --emerald-800: #6ee7b7;
+
+      --amber-50: rgba(245, 158, 11, 0.14);
+      --amber-100: rgba(245, 158, 11, 0.22);
+      --amber-200: rgba(245, 158, 11, 0.35);
+      --amber-300: rgba(245, 158, 11, 0.45);
+      --amber-800: #fcd34d;
+      --amber-900: #fde68a;
+
+      --indigo-50: rgba(99, 102, 241, 0.16);
+      --indigo-600: #818cf8;
+
+      --purple-50: rgba(168, 85, 247, 0.16);
+      --purple-200: rgba(168, 85, 247, 0.35);
+      --purple-700: #d8b4fe;
+
+      --sky-50: rgba(14, 165, 233, 0.14);
+      --sky-100: rgba(14, 165, 233, 0.22);
+      --sky-200: rgba(14, 165, 233, 0.35);
+      --sky-700: #7dd3fc;
+      --sky-900: #bae6fd;
+
+      --rose-50: rgba(244, 63, 94, 0.15);
+      --rose-600: #fb7185;
+    }
+
+    html.dark .app-header {
+      background-color: rgba(17, 24, 39, 0.9);
+    }
+
+    html.dark .composition-strip,
+    html.dark .pane-header,
+    html.dark .pane-footer,
+    html.dark .suggestion-footer {
+      background-color: #0f172a;
+      border-color: var(--border-color);
+    }
+
+    html.dark .composition-track,
+    html.dark .pane-tag {
+      background-color: #1e293b;
+      color: var(--text-secondary);
+    }
+
+    html.dark .status-bar,
+    html.dark .inspector-body {
+      border-color: var(--border-color);
+    }
+
+    html.dark .inspector-body {
+      background-color: rgba(15, 23, 42, 0.6);
+    }
+
+    html.dark .inspector-header:hover,
+    html.dark .btn-pane:hover {
+      background-color: #1e293b;
+    }
+
+    html.dark .editor-area-wrap.output-bg {
+      background-color: rgba(15, 23, 42, 0.35);
+    }
+
+    html.dark .input-backdrop mark.sync-highlight {
+      background-color: rgba(245, 158, 11, 0.35);
+      box-shadow: 0 0 0 2px #f59e0b;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      font-family: var(--font-sans);
+      color: var(--text-primary);
+      background-color: var(--bg-page);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      line-height: 1.5;
+    }
+
+    ::selection {
+      background-color: var(--emerald-200);
+      color: var(--emerald-800);
+    }
+
+    button, input, textarea {
+      font-family: inherit;
+    }
+
+    button {
+      cursor: pointer;
+      border: none;
+      background: none;
+    }
+
+    /* Custom subtle scrollbar */
+    textarea::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    textarea::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    textarea::-webkit-scrollbar-thumb {
+      background-color: rgba(148, 163, 184, 0.45);
+      border-radius: var(--radius-full);
+    }
+    textarea::-webkit-scrollbar-thumb:hover {
+      background-color: rgba(100, 116, 139, 0.65);
+    }
+
+    /* ==========================================================================
+       LAYOUT & CONTAINERS
+       ========================================================================== */
+    .container {
+      width: 100%;
+      max-width: 82rem;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
+
+    @media (min-width: 640px) {
+      .container {
+        padding: 0 1.5rem;
+      }
+    }
+
+    .main-workspace {
+      flex: 1;
+      padding-top: 1.25rem;
+      padding-bottom: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    /* ==========================================================================
+       HEADER & COMPOSITION BAR
+       ========================================================================== */
+    .app-header {
+      background-color: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 30;
+    }
+
+    .header-inner {
+      min-height: 4.25rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      padding-top: 0.5rem;
+      padding-bottom: 0.5rem;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .brand-logo {
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: var(--radius-lg);
+      background: linear-gradient(135deg, var(--emerald-600), #0f766e);
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-unicode);
+      font-weight: 700;
+      font-size: 1.35rem;
+      box-shadow: 0 2px 6px rgba(5, 150, 105, 0.25);
+      user-select: none;
+    }
+
+    .brand-title-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .brand-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+    }
+
+    .version-pill {
+      display: none;
+      align-items: center;
+      padding: 0.125rem 0.5rem;
+      border-radius: var(--radius-full);
+      font-size: 0.7rem;
+      font-weight: 600;
+      background-color: var(--emerald-50);
+      color: var(--emerald-700);
+      border: 1px solid var(--emerald-200);
+    }
+
+    @media (min-width: 640px) {
+      .version-pill {
+        display: inline-flex;
+      }
+    }
+
+    .brand-subtitle {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      display: none;
+    }
+
+    @media (min-width: 768px) {
+      .brand-subtitle {
+        display: block;
+      }
+    }
+
+    .preset-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .preset-label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-right: 0.15rem;
+    }
+
+    .btn-preset {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.4rem 0.65rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      background-color: var(--bg-subtle);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      transition: all 0.15s ease;
+    }
+
+    .btn-preset:hover {
+      background-color: var(--bg-subtle-hover);
+      color: var(--text-primary);
+    }
+
+    /* Script Composition Bar inside Header */
+    .composition-strip {
+      border-top: 1px solid #f1f5f9;
+      background-color: #fafbfc;
+      padding: 0.45rem 0;
+    }
+
+    .composition-inner {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      font-size: 0.72rem;
+    }
+
+    .composition-bar-wrap {
+      flex: 1;
+      min-width: 200px;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .composition-track {
+      flex: 1;
+      height: 0.45rem;
+      background-color: #e2e8f0;
+      border-radius: var(--radius-full);
+      overflow: hidden;
+      display: flex;
+    }
+
+    .comp-seg-bijoy {
+      height: 100%;
+      background-color: var(--amber-500);
+      transition: width 0.25s ease;
+    }
+
+    .comp-seg-unicode {
+      height: 100%;
+      background-color: var(--emerald-500);
+      transition: width 0.25s ease;
+    }
+
+    .comp-seg-english {
+      height: 100%;
+      background-color: var(--sky-500);
+      transition: width 0.25s ease;
+    }
+
+    .composition-legend {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    .legend-dot {
+      width: 0.55rem;
+      height: 0.55rem;
+      border-radius: 2px;
+    }
+
+    /* ==========================================================================
+       CONTROL & TOOLBAR CARD
+       ========================================================================== */
+    .card {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .toolbar-card {
+      padding: 0.9rem 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+
+    .toolbar-top {
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+
+    @media (min-width: 1024px) {
+      .toolbar-top {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+      }
+    }
+
+    .mode-group {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.35rem;
+      background-color: var(--bg-subtle);
+      padding: 0.3rem;
+      border-radius: var(--radius-lg);
+    }
+
+    .mode-btn {
+      padding: 0.45rem 0.75rem;
+      border-radius: var(--radius-md);
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: all 0.15s ease;
+    }
+
+    .mode-btn:hover {
+      color: var(--text-primary);
+    }
+
+    .mode-btn.active {
+      background-color: var(--bg-surface);
+      color: var(--emerald-700);
+      font-weight: 600;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .mode-dot {
+      width: 0.5rem;
+      height: 0.5rem;
+      border-radius: var(--radius-full);
+    }
+
+    .controls-right {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    /* Custom Toggle Switch */
+    .switch-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      user-select: none;
+      padding: 0.35rem 0.55rem;
+      border-radius: var(--radius-md);
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      transition: background-color 0.15s ease;
+    }
+
+    .switch-label:hover {
+      background-color: var(--bg-subtle);
+    }
+
+    .switch-input {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .switch-track {
+      position: relative;
+      width: 2.25rem;
+      height: 1.25rem;
+      background-color: #cbd5e1;
+      border-radius: var(--radius-full);
+      transition: background-color 0.2s ease;
+      flex-shrink: 0;
+    }
+
+    .switch-track::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 1rem;
+      height: 1rem;
+      background-color: #ffffff;
+      border-radius: var(--radius-full);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+      transition: transform 0.2s ease;
+    }
+
+    .switch-input:checked + .switch-track {
+      background-color: var(--emerald-600);
+    }
+
+    .switch-input:checked + .switch-track::after {
+      transform: translateX(1rem);
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.5rem 0.95rem;
+      border-radius: var(--radius-lg);
+      background-color: var(--emerald-600);
+      color: #ffffff;
+      font-size: 0.8rem;
+      font-weight: 600;
+      box-shadow: 0 2px 5px rgba(5, 150, 105, 0.25);
+      transition: all 0.15s ease;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--emerald-700);
+    }
+
+    .btn-primary:active {
+      transform: scale(0.98);
+    }
+
+    /* Status Bar inside Toolbar */
+    .status-bar {
+      padding-top: 0.7rem;
+      border-top: 1px solid #f1f5f9;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      font-size: 0.75rem;
+    }
+
+    .status-left {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .detection-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.25rem 0.65rem;
+      border-radius: var(--radius-md);
+      font-weight: 600;
+      border: 1px solid var(--border-color);
+      background-color: var(--bg-subtle);
+      color: var(--text-secondary);
+    }
+
+    .detection-badge.badge-mixed {
+      background-color: var(--purple-50);
+      color: var(--purple-700);
+      border-color: var(--purple-200);
+    }
+
+    .detection-badge.badge-bijoy {
+      background-color: var(--amber-50);
+      color: var(--amber-800);
+      border-color: var(--amber-200);
+    }
+
+    .detection-badge.badge-unicode {
+      background-color: var(--emerald-50);
+      color: var(--emerald-800);
+      border-color: var(--emerald-200);
+    }
+
+    .detection-badge.badge-english {
+      background-color: var(--sky-50);
+      color: var(--sky-700);
+      border-color: var(--sky-200);
+    }
+
+    .status-dot {
+      width: 0.5rem;
+      height: 0.5rem;
+      border-radius: var(--radius-full);
+      background-color: #94a3b8;
+    }
+
+    .badge-mixed .status-dot { background-color: var(--purple-500); }
+    .badge-bijoy .status-dot { background-color: var(--amber-500); }
+    .badge-unicode .status-dot { background-color: var(--emerald-500); }
+    .badge-english .status-dot { background-color: var(--sky-500); }
+
+    /* ==========================================================================
+       DUAL-PANE EDITOR GRID
+       ========================================================================== */
+    .editor-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.15rem;
+    }
+
+    @media (min-width: 1024px) {
+      .editor-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    .pane-card {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .pane-card:focus-within {
+      border-color: var(--emerald-500);
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+    }
+
+    .pane-header {
+      padding: 0.7rem 1rem;
+      background-color: #f8fafc;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+
+    .pane-title-group {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .pane-tag {
+      padding: 0.15rem 0.5rem;
+      border-radius: 0.375rem;
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      background-color: #e2e8f0;
+      color: #334155;
+    }
+
+    .pane-tag.tag-unicode {
+      background-color: var(--emerald-100);
+      color: var(--emerald-800);
+    }
+
+    .pane-tag.tag-bijoy {
+      background-color: var(--amber-100);
+      color: var(--amber-800);
+    }
+
+    .pane-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .pane-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .btn-pane {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.35rem 0.6rem;
+      border-radius: var(--radius-md);
+      font-size: 0.74rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      transition: all 0.15s ease;
+    }
+
+    .btn-pane:hover {
+      background-color: #e2e8f0;
+      color: var(--text-primary);
+    }
+
+    .btn-pane.btn-danger {
+      color: var(--rose-600);
+    }
+
+    .btn-pane.btn-danger:hover {
+      background-color: var(--rose-50);
+    }
+
+    .btn-pane.btn-accent {
+      background-color: var(--emerald-600);
+      color: #ffffff;
+      font-weight: 600;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .btn-pane.btn-accent:hover {
+      background-color: var(--emerald-700);
+    }
+
+    .editor-area-wrap {
+      position: relative;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .editor-area-wrap.output-bg {
+      background-color: rgba(248, 250, 252, 0.45);
+    }
+
+    /* Synchronized Input Backdrop Highlighting */
+    .input-backdrop {
+      position: absolute;
+      inset: 0;
+      padding: 1rem;
+      font-size: 1.05rem;
+      line-height: 1.7;
+      font-family: var(--font-unicode);
+      color: transparent;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      overflow-y: auto;
+      pointer-events: none;
+      z-index: 1;
+      border: 1px solid transparent;
+    }
+
+    @media (min-width: 640px) {
+      .input-backdrop {
+        font-size: 1.125rem;
+      }
+    }
+
+    .input-backdrop mark.sync-highlight {
+      background-color: #fde68a;
+      color: transparent;
+      border-radius: 4px;
+      box-shadow: 0 0 0 2px #f59e0b;
+    }
+
+    #input-text {
+      position: relative;
+      z-index: 2;
+      background: transparent !important;
+    }
+
+    .editor-textarea {
+      width: 100%;
+      flex: 1;
+      min-height: 290px;
+      padding: 1rem;
+      border: none;
+      background: transparent;
+      resize: vertical;
+      font-size: 1.05rem;
+      line-height: 1.7;
+      color: var(--text-primary);
+    }
+
+    @media (min-width: 640px) {
+      .editor-textarea {
+        min-height: 340px;
+        font-size: 1.125rem;
+      }
+    }
+
+    .editor-textarea:focus {
+      outline: none;
+    }
+
+    .editor-textarea::placeholder {
+      color: #94a3b8;
+      font-size: 0.88rem;
+    }
+
+    .font-unicode {
+      font-family: var(--font-unicode);
+    }
+
+    .font-bijoy-raw {
+      font-family: var(--font-mono);
+      font-size: 0.98rem;
+    }
+
+    /* Floating Correction Suggestion Dropdown */
+    .suggestion-popover {
+      position: fixed;
+      z-index: 60;
+      width: 290px;
+      max-width: calc(100vw - 1.5rem);
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-xl);
+      overflow: hidden;
+      display: none;
+      animation: popIn 0.14s ease-out;
+    }
+
+    .suggestion-popover.visible {
+      display: block;
+    }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: translateY(4px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .suggestion-header {
+      padding: 0.5rem 0.75rem;
+      background-color: var(--bg-subtle);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+    }
+
+    .suggestion-source-pill {
+      font-family: var(--font-mono);
+      background-color: var(--amber-100);
+      color: var(--amber-900);
+      padding: 0.1rem 0.4rem;
+      border-radius: 4px;
+      font-weight: 600;
+      max-width: 145px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .suggestion-list {
+      padding: 0.35rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+      max-height: 230px;
+      overflow-y: auto;
+    }
+
+    .suggestion-item {
+      width: 100%;
+      text-align: left;
+      padding: 0.45rem 0.6rem;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      transition: background-color 0.12s ease;
+    }
+
+    .suggestion-item:hover,
+    .suggestion-item.active-item {
+      background-color: var(--emerald-50);
+    }
+
+    .suggestion-word {
+      font-family: var(--font-unicode);
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .suggestion-meta {
+      font-size: 0.66rem;
+      font-weight: 600;
+      padding: 0.1rem 0.38rem;
+      border-radius: 4px;
+      background-color: var(--bg-subtle);
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    .suggestion-footer {
+      padding: 0.35rem 0.75rem;
+      background-color: #fafbfc;
+      border-top: 1px solid #f1f5f9;
+      font-size: 0.66rem;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .pane-footer {
+      padding: 0.6rem 1rem;
+      background-color: #f8fafc;
+      border-top: 1px solid #f1f5f9;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      font-size: 0.74rem;
+      color: var(--text-muted);
+    }
+
+    .stats-row {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+    }
+
+    .stats-row strong {
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    .btn-link {
+      font-size: 0.74rem;
+      font-weight: 600;
+      color: var(--emerald-700);
+    }
+
+    .btn-link:hover {
+      text-decoration: underline;
+    }
+
+    /* ==========================================================================
+       TOKEN CLASSIFICATION INSPECTOR
+       ========================================================================== */
+    .inspector-card {
+      overflow: hidden;
+    }
+
+    .inspector-header {
+      width: 100%;
+      padding: 0.9rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      text-align: left;
+      transition: background-color 0.15s ease;
+    }
+
+    .inspector-header:hover {
+      background-color: #f8fafc;
+    }
+
+    .inspector-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .inspector-icon {
+      width: 2rem;
+      height: 2rem;
+      border-radius: var(--radius-md);
+      background-color: var(--indigo-50);
+      color: var(--indigo-600);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .inspector-heading {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .inspector-sub {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .chevron-icon {
+      width: 1.25rem;
+      height: 1.25rem;
+      color: #94a3b8;
+      transition: transform 0.2s ease;
+    }
+
+    .chevron-icon.collapsed {
+      transform: rotate(-90deg);
+    }
+
+    .inspector-body {
+      border-top: 1px solid #f1f5f9;
+      padding: 1.15rem 1.25rem;
+      background-color: rgba(248, 250, 252, 0.5);
+      display: flex;
+      flex-direction: column;
+      gap: 1.15rem;
+    }
+
+    .inspector-body.hidden {
+      display: none;
+    }
+
+    .token-box-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .section-kicker {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+    }
+
+    .token-legend {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+    }
+
+    .swatch {
+      display: inline-block;
+      width: 0.65rem;
+      height: 0.65rem;
+      border-radius: 2px;
+      margin-right: 0.25rem;
+      vertical-align: middle;
+    }
+
+    .swatch-bijoy { background-color: var(--amber-200); border: 1px solid var(--amber-500); }
+    .swatch-unicode { background-color: var(--emerald-200); border: 1px solid var(--emerald-500); }
+    .swatch-english { background-color: var(--sky-200); border: 1px solid var(--sky-500); }
+
+    .token-visualizer {
+      padding: 0.85rem;
+      border-radius: var(--radius-lg);
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      min-height: 3.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      align-items: center;
+      font-size: 0.78rem;
+    }
+
+    .tok-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.2rem 0.5rem;
+      border-radius: 0.375rem;
+      font-size: 0.76rem;
+    }
+
+    .tok-chip-tag {
+      font-size: 0.6rem;
+      font-weight: 700;
+      opacity: 0.75;
+      letter-spacing: 0.02em;
+    }
+
+    .tok-bijoy {
+      background-color: var(--amber-100);
+      color: var(--amber-900);
+      border: 1px solid var(--amber-300);
+      font-family: var(--font-mono);
+    }
+
+    .tok-unicode {
+      background-color: var(--emerald-100);
+      color: var(--emerald-800);
+      border: 1px solid var(--emerald-200);
+      font-family: var(--font-unicode);
+    }
+
+    .tok-english {
+      background-color: var(--sky-100);
+      color: var(--sky-900);
+      border: 1px solid var(--sky-200);
+    }
+
+    /* Sample Cards Grid */
+    .sample-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.75rem;
+      margin-top: 0.5rem;
+    }
+
+    @media (min-width: 768px) {
+      .sample-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    .sample-card {
+      text-align: left;
+      padding: 0.85rem;
+      border-radius: var(--radius-lg);
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      transition: all 0.15s ease;
+    }
+
+    .sample-card:hover {
+      border-color: var(--emerald-500);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .sample-card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .sample-tag {
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0.15rem 0.45rem;
+      border-radius: 0.3rem;
+    }
+
+    .sample-tag.st-amber { background-color: var(--amber-50); color: var(--amber-800); }
+    .sample-tag.st-purple { background-color: var(--purple-50); color: var(--purple-700); }
+    .sample-tag.st-emerald { background-color: var(--emerald-50); color: var(--emerald-700); }
+
+    .sample-note {
+      font-size: 0.68rem;
+      color: #94a3b8;
+    }
+
+    .sample-preview {
+      font-size: 0.76rem;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* ==========================================================================
+       FOOTER & TOAST NOTIFICATION
+       ========================================================================== */
+    .app-footer {
+      background-color: var(--bg-surface);
+      border-top: 1px solid var(--border-color);
+      padding: 1rem 0;
+      margin-top: auto;
+    }
+
+    .footer-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    @media (min-width: 640px) {
+      .footer-inner {
+        flex-direction: row;
+      }
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 1.25rem;
+      right: 1.25rem;
+      z-index: 50;
+      transform: translateY(5rem);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .toast-box {
+      background-color: #0f172a;
+      color: #ffffff;
+      padding: 0.7rem 1rem;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-xl);
+      border: 1px solid rgba(51, 65, 85, 0.7);
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      font-size: 0.82rem;
+      font-weight: 500;
+    }
+
+    .toast-check {
+      width: 1.25rem;
+      height: 1.25rem;
+      border-radius: var(--radius-full);
+      background-color: rgba(16, 185, 129, 0.2);
+      color: #34d399;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    /* About Modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 70;
+      background-color: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal-card {
+      width: 100%;
+      max-width: 26rem;
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-xl);
+      overflow: hidden;
+      animation: popIn 0.16s ease-out;
+    }
+
+    .modal-header {
+      padding: 0.85rem 1.1rem;
+      background-color: var(--bg-subtle);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-title {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .modal-body {
+      padding: 1.25rem 1.1rem;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.55rem;
+    }
+
+    .about-credit-line {
+      font-family: var(--font-mono);
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--emerald-700);
+      background-color: var(--emerald-50);
+      border: 1px solid var(--emerald-200);
+      padding: 0.45rem 0.75rem;
+      border-radius: var(--radius-md);
+    }
+
+    .about-degree {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .about-link {
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--sky-700);
+      text-decoration: none;
+      padding: 0.25rem 0.6rem;
+      border-radius: var(--radius-md);
+      background-color: var(--sky-50);
+      border: 1px solid var(--sky-200);
+      transition: opacity 0.15s ease;
+    }
+
+    .about-link:hover {
+      opacity: 0.85;
+      text-decoration: underline;
+    }
+
+    .icon-sm {
+      width: 0.95rem;
+      height: 0.95rem;
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast" role="status" aria-live="polite">
+    <div class="toast-box">
+      <span class="toast-check">
+        <svg class="icon-sm" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+        </svg>
+      </span>
+      <span id="toast-message">Action completed!</span>
+    </div>
+  </div>
+
+  <!-- About Modal -->
+  <div id="about-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="about-modal-title">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="about-modal-title" class="modal-title">About BanglaBridge</h3>
+        <button type="button" id="btn-close-about" style="color:var(--text-muted); font-weight:700; padding:2px 6px;" aria-label="Close About">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="about-credit-line">&lt;/&gt; Credit: Shafin Al Asad Protic &lt;/&gt;</div>
+        <div class="about-degree">B.Sc. Engg. in EEE (RUET)</div>
+        <a class="about-link" href="https://www.facebook.com/shafin.protic" target="_blank" rel="noopener noreferrer">www.facebook.com/shafin.protic</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Navigation Header -->
+  <header class="app-header">
+    <div class="container header-inner">
+      <div class="brand-group">
+        <div class="brand-logo" aria-hidden="true">ব</div>
+        <div>
+          <div class="brand-title-row">
+            <h1 class="brand-title">BanglaBridge</h1>
+            <span class="version-pill">Smart Engine v2.2</span>
+          </div>
+          <p class="brand-subtitle">Intelligent Bijoy (ANSI) ↔ Unicode Bangla Converter</p>
+        </div>
+      </div>
+
+      <!-- Quick Sample Presets, About & Theme Toggle -->
+      <div class="preset-bar">
+        <span class="preset-label">Presets:</span>
+        <button type="button" class="btn-preset" data-preset="bijoy">Pure Bijoy</button>
+        <button type="button" class="btn-preset" data-preset="unicode">Pure Unicode</button>
+        <button type="button" class="btn-preset" data-preset="mixed">Mixed Text</button>
+        <button type="button" id="btn-open-about" class="btn-preset" title="Developer Credit & Info">
+          <svg class="icon-sm" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10"/>
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 16v-4m0-4h.01"/>
+          </svg>
+          <span>About</span>
+        </button>
+        <button type="button" id="btn-toggle-theme" class="btn-preset" title="Toggle Dark / Light Theme" aria-label="Toggle Dark / Light Theme">
+          <svg id="theme-icon-moon" class="icon-sm" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+          </svg>
+          <svg id="theme-icon-sun" class="icon-sm" style="display:none; color:#fbbf24;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="5"/>
+            <path stroke-linecap="round" d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+          </svg>
+          <span id="theme-label">Dark</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Live Script Composition Bar -->
+    <div class="composition-strip">
+      <div class="container composition-inner">
+        <div class="composition-bar-wrap">
+          <span style="font-weight: 600; color: var(--text-secondary); white-space: nowrap;">Script Composition:</span>
+          <div class="composition-track" title="Live breakdown of Bijoy, Unicode, and English/Neutral tokens">
+            <div id="bar-bijoy" class="comp-seg-bijoy" style="width: 0%;"></div>
+            <div id="bar-unicode" class="comp-seg-unicode" style="width: 0%;"></div>
+            <div id="bar-english" class="comp-seg-english" style="width: 0%;"></div>
+          </div>
+        </div>
+        <div class="composition-legend">
+          <span class="legend-item"><span class="legend-dot" style="background: var(--amber-500);"></span>Bijoy: <strong id="pct-bijoy">0%</strong></span>
+          <span class="legend-item"><span class="legend-dot" style="background: var(--emerald-500);"></span>Unicode: <strong id="pct-unicode">0%</strong></span>
+          <span class="legend-item"><span class="legend-dot" style="background: var(--sky-500);"></span>EN/Neutral: <strong id="pct-english">0%</strong></span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Workspace -->
+  <main class="container main-workspace">
+
+    <!-- Control & Mode Toolbar -->
+    <section class="card toolbar-card">
+      <div class="toolbar-top">
+        <!-- Conversion Modes -->
+        <div class="mode-group" role="tablist" aria-label="Conversion Mode">
+          <button type="button" data-mode="smart-to-unicode" class="mode-btn active">
+            <span class="mode-dot" style="background-color: var(--emerald-500);"></span>
+            Smart Convert → Unicode
+          </button>
+          <button type="button" data-mode="smart-to-bijoy" class="mode-btn">
+            <span class="mode-dot" style="background-color: var(--amber-500);"></span>
+            Smart Convert → Bijoy
+          </button>
+          <button type="button" data-mode="auto-normalize" class="mode-btn">
+            <span class="mode-dot" style="background-color: var(--indigo-500);"></span>
+            Auto-Detect / Normalize Mixed
+          </button>
+        </div>
+
+        <!-- Toggles & Primary Action -->
+        <div class="controls-right">
+          <label class="switch-label">
+            <input id="toggle-live" type="checkbox" checked class="switch-input" />
+            <span class="switch-track"></span>
+            <span>Live Convert</span>
+          </label>
+
+          <label class="switch-label" title="Protects English words, URLs, emails, and technical terms from accidental conversion">
+            <input id="toggle-english" type="checkbox" checked class="switch-input" />
+            <span class="switch-track"></span>
+            <span>Protect English/URLs</span>
+          </label>
+
+          <button id="btn-convert-now" type="button" class="btn-primary">
+            <svg class="icon-sm" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"/>
+            </svg>
+            <span>Convert</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Detection Status Bar -->
+      <div class="status-bar">
+        <div class="status-left">
+          <span style="color: var(--text-muted); font-weight: 500;">Analysis:</span>
+          <span id="detection-badge" class="detection-badge">
+            <span class="status-dot"></span>
+            <span id="detection-text">Waiting for input...</span>
+          </span>
+          <span id="segment-breakdown" style="color: var(--text-muted);"></span>
+        </div>
+
+        <div style="color: var(--text-muted);">
+          <span>Active Rule: </span>
+          <strong id="active-rule-desc" style="color: var(--text-primary); font-weight: 600;">Converts Bijoy tokens → Unicode; preserves Unicode & English</strong>
+        </div>
+      </div>
+    </section>
+
+    <!-- Dual-Pane Editor Grid -->
+    <section class="editor-grid">
+
+      <!-- Left Pane: Input -->
+      <div class="card pane-card">
+        <div class="pane-header">
+          <div class="pane-title-group">
+            <span class="pane-tag">Input</span>
+            <h2 class="pane-title">Source Text (Bijoy, Unicode, or Mixed)</h2>
+          </div>
+
+          <div class="pane-actions">
+            <button id="btn-load-sample" type="button" class="btn-pane" title="Load Mixed Sample Text">
+              <svg class="icon-sm" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+              <span>Sample</span>
+            </button>
+            <button id="btn-paste" type="button" class="btn-pane" title="Paste from Clipboard">
+              <svg class="icon-sm" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+              </svg>
+              <span>Paste</span>
+            </button>
+            <button id="btn-clear" type="button" class="btn-pane btn-danger" title="Clear Input">
+              <svg class="icon-sm" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+              </svg>
+              <span>Clear</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="editor-area-wrap">
+          <div id="input-backdrop" class="input-backdrop" aria-hidden="true"></div>
+          <textarea
+            id="input-text"
+            class="editor-textarea font-unicode"
+            rows="12"
+            placeholder="Paste or type Bijoy (SutonnyMJ), Unicode Bangla, or mixed text here...&#10;&#10;Bijoy example: Avgvi †mvbvi evsjv, Avwg †Zvgvq fv‡jvevwm|&#10;Mixed example: Avwg evsjvq গান লিখি and build modern web apps!"
+          ></textarea>
+        </div>
+
+        <div class="pane-footer">
+          <div class="stats-row">
+            <span>Characters: <strong id="input-chars">0</strong></span>
+            <span>Words: <strong id="input-words">0</strong></span>
+          </div>
+          <span id="sync-status-hint">Click word to highlight • Double-click for suggestions</span>
+        </div>
+      </div>
+
+      <!-- Right Pane: Output -->
+      <div class="card pane-card">
+        <div class="pane-header">
+          <div class="pane-title-group">
+            <span id="output-format-pill" class="pane-tag tag-unicode">Unicode Output</span>
+            <h2 class="pane-title">Converted Result <span style="font-weight:400; color:var(--text-muted); font-size:0.75rem;">(Editable)</span></h2>
+          </div>
+
+          <div class="pane-actions">
+            <button id="btn-swap" type="button" class="btn-pane" title="Move Output to Input & Reverse Direction">
+              <svg class="icon-sm" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+              </svg>
+              <span>Swap</span>
+            </button>
+            <button id="btn-download" type="button" class="btn-pane" title="Download Converted Text as .txt">
+              <svg class="icon-sm" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+              </svg>
+              <span>Download .txt</span>
+            </button>
+            <button id="btn-copy" type="button" class="btn-pane btn-accent" title="Copy Converted Output">
+              <svg class="icon-sm" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+              </svg>
+              <span>Copy</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="editor-area-wrap output-bg">
+          <textarea
+            id="output-text"
+            class="editor-textarea font-unicode"
+            rows="12"
+            placeholder="Converted output will appear here automatically. Double-click any word for smart correction suggestions..."
+          ></textarea>
+        </div>
+
+        <div class="pane-footer">
+          <div class="stats-row">
+            <span>Characters: <strong id="output-chars">0</strong></span>
+            <span>Words: <strong id="output-words">0</strong></span>
+          </div>
+          <button id="btn-toggle-font" type="button" class="btn-link">
+            Font Preview: <span id="output-font-label">Noto Sans Bengali (Unicode)</span>
+          </button>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Floating Correction Suggestion Dropdown -->
+    <div id="suggestion-popover" class="suggestion-popover" role="listbox" aria-label="Correction Suggestions">
+      <div class="suggestion-header">
+        <span>Source: <span id="suggestion-source-text" class="suggestion-source-pill"></span></span>
+        <button type="button" id="btn-close-suggestions" style="color:var(--text-muted); font-weight:700; padding:0 4px;" title="Close (Esc)">✕</button>
+      </div>
+      <div id="suggestion-list" class="suggestion-list"></div>
+      <div class="suggestion-footer">
+        <span>Click to apply fix</span>
+        <span>Esc to dismiss</span>
+      </div>
+    </div>
+
+    <!-- Token Classification Inspector & Test Suite -->
+    <section class="card inspector-card">
+      <button id="btn-toggle-inspector" type="button" class="inspector-header" aria-expanded="true">
+        <div class="inspector-title-wrap">
+          <div class="inspector-icon">
+            <svg class="icon-sm" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+            </svg>
+          </div>
+          <div>
+            <h3 class="inspector-heading">Live Token Classification Inspector & Sample Test Cases</h3>
+            <p class="inspector-sub">See how each token is classified (BIJOY, UNICODE, EN/NEUTRAL) and test complex Bangla conjuncts</p>
+          </div>
+        </div>
+        <svg id="inspector-chevron" class="chevron-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+        </svg>
+      </button>
+
+      <div id="inspector-body" class="inspector-body">
+        <div>
+          <div class="token-box-header">
+            <span class="section-kicker">Token-by-Token Classification (First 45 Tokens)</span>
+            <div class="token-legend">
+              <span><span class="swatch swatch-bijoy"></span>BIJOY</span>
+              <span><span class="swatch swatch-unicode"></span>UNICODE</span>
+              <span><span class="swatch swatch-english"></span>EN / NEUTRAL</span>
+            </div>
+          </div>
+          <div id="token-visualizer" class="token-visualizer">
+            <span style="color: #94a3b8; font-style: italic;">Enter text above to inspect token classification...</span>
+          </div>
+        </div>
+
+        <div>
+          <span class="section-kicker">One-Click Interactive Test Cases</span>
+          <div class="sample-grid">
+            <button type="button" class="sample-card" data-preset="bijoy">
+              <div class="sample-card-top">
+                <span class="sample-tag st-amber">Pure Bijoy ANSI</span>
+                <span class="sample-note">Kar &amp; Chandrabindu</span>
+              </div>
+              <p class="sample-preview" style="font-family: var(--font-mono);">Avgvi †mvbvi evsjv, Avwg †Zvgvq fv‡jvevwm|</p>
+            </button>
+
+            <button type="button" class="sample-card" data-preset="mixed">
+              <div class="sample-card-top">
+                <span class="sample-tag st-purple">Mixed Bijoy + Unicode + EN</span>
+                <span class="sample-note">Smart Token Detection</span>
+              </div>
+              <p class="sample-preview font-unicode">evsjv‡`‡ki স্বাধীনতা ও সার্বভৌমত্ব... Visit https://bangladesh.gov.bd</p>
+            </button>
+
+            <button type="button" class="sample-card" data-preset="unicode">
+              <div class="sample-card-top">
+                <span class="sample-tag st-emerald">Complex Conjuncts (Unicode)</span>
+                <span class="sample-note">Unicode → Bijoy Test</span>
+              </div>
+              <p class="sample-preview font-unicode">ক্ষমা, জ্ঞান, ব্রাহ্মণ, রাষ্ট্র, লক্ষ্মী, উজ্জ্বল, আন্তর্জাতিক...</p>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    <div class="container footer-inner">
+      <p>BanglaBridge Engine — Built for accurate SutonnyMJ (Bijoy Classic) &amp; Unicode Bangla interoperability.</p>
+      <p>Zero external dependencies • 100% client-side processing</p>
+    </div>
+  </footer>
+
+  <!-- Clean, Strictly Validated JavaScript Engine -->
+  <script>
+    var BanglaBridge = (function () {
+      'use strict';
+
+      /**
+       * =========================================================================
+       * BANGLABRIDGE CORE ENGINE
+       * - Strictly sanitized UTF-16 string literals & escape sequences
+       * - Complete Bijoy (SutonnyMJ ANSI) <-> Unicode Bangla mappings
+       * - Pre-base vowel reordering, Reph reordering, Phala & Conjunct resolution
+       * - Context-aware Token-Level Encoding Detector
+       * =========================================================================
+       */
+
+      // -------------------------------------------------------------------------
+      // 1. BIJOY (ANSI) -> UNICODE MAPPING TABLE
+      // -------------------------------------------------------------------------
+      var BIJOY_TO_UNICODE_MAP = {
+        // Independent Vowels
+        'Av': '\u0986', // আ
+        'A': '\u0985',  // অ
+        'B': '\u0987',  // ই
+        'C': '\u0988',  // ঈ
+        'D': '\u0989',  // উ
+        'E': '\u098A',  // ঊ
+        'F': '\u098B',  // ঋ
+        'G': '\u098F',  // এ
+        'H': '\u0990',  // ঐ
+        'I': '\u0993',  // ও
+        'J': '\u0994',  // ঔ
+
+        // Digits & Punctuation
+        '0': '\u09E6', // ০
+        '1': '\u09E7', // ১
+        '2': '\u09E8', // ২
+        '3': '\u09E9', // ৩
+        '4': '\u09EA', // ৪
+        '5': '\u09EB', // ৫
+        '6': '\u09EC', // ৬
+        '7': '\u09ED', // ৭
+        '8': '\u09EE', // ৮
+        '9': '\u09EF', // ৯
+        '|': '\u0964', // ।
+        '\u2018': '\u2018', // ‘
+        '\u2019': '\u2019', // ’
+        '\u201C': '\u201C', // “
+        '\u201D': '\u201D', // ”
+        '\u00D4': '\u2018', // Ô -> ‘
+        '\u00D5': '\u2019', // Õ -> ’
+        '\u00D2': '\u201C', // Ò -> “
+        '\u00D3': '\u201D', // Ó -> ”
+
+        // Dependent Vowel Signs & Modifiers
+        'v': '\u09BE',      // া
+        'w': '\u09BF',      // ি
+        'x': '\u09C0',      // ী
+        'y': '\u09C1',      // ু
+        'z': '\u09C1',      // ু
+        '~': '\u09C2',      // ূ
+        '\u201E': '\u09C2', // „ -> ূ
+        '\u2026': '\u09C3', // … -> ৃ
+        '\u2020': '\u09C7', // † -> ে
+        '\u2021': '\u09C7', // ‡ -> ে
+        '\u2030': '\u09C8', // ‰ -> ৈ
+        '\u0160': '\u09D7', // Š -> ৗ
+        's': '\u0982',      // ং
+        't': '\u0983',      // ঃ
+        'u': '\u0981',      // ঁ
+        '&': '\u09CD',      // ্
+        '\u00AA': '\u09CD\u09B0', // ª -> ্র
+        '\u00AB': '\u09CD\u09B0', // « -> ্র
+        '\u00D6': '\u09CD\u09B0', // Ö -> ্র
+        '\u00A8': '\u09CD\u09AF', // ¨ -> ্য
+        '\u00A9': '\u09B0\u09CD', // © -> র্ (Reph)
+
+        // Base Consonants
+        'K': '\u0995', // ক
+        'L': '\u0996', // খ
+        'M': '\u0997', // গ
+        'N': '\u0998', // ঘ
+        'O': '\u0999', // ঙ
+        'P': '\u099A', // চ
+        'Q': '\u099B', // ছ
+        'R': '\u099C', // জ
+        'S': '\u099D', // ঝ
+        'T': '\u099E', // ঞ
+        'U': '\u099F', // ট
+        'V': '\u09A0', // ঠ
+        'W': '\u09A1', // ড
+        'X': '\u09A2', // ঢ
+        'Y': '\u09A3', // ণ
+        'Z': '\u09A4', // ত
+        '_': '\u09A5', // থ
+        '`': '\u09A6', // দ
+        'a': '\u09A7', // ধ
+        'b': '\u09A8', // ন
+        'c': '\u09AA', // প
+        'd': '\u09AB', // ফ
+        'e': '\u09AC', // ব
+        'f': '\u09AD', // ভ
+        'g': '\u09AE', // ম
+        'h': '\u09AF', // য
+        'i': '\u09B0', // র
+        'j': '\u09B2', // ল
+        'k': '\u09B6', // শ
+        'l': '\u09B7', // ষ
+        'm': '\u09B8', // স
+        'n': '\u09B9', // হ
+        'o': '\u09DC', // ড়
+        'p': '\u09DD', // ঢ়
+        'q': '\u09DF', // য়
+        'r': '\u09CE', // ৎ
+
+        // Special Consonant + Vowel & Ra-phala Ligatures in Bijoy ANSI
+        'i\u00E6': '\u09B0\u09C1', // iæ -> রু
+        'i\u0192': '\u09B0\u09C1', // iƒ -> রু
+        'i\u201A': '\u09B0\u09C2', // i‚ -> রূ
+        'M\u00E6': '\u0997\u09C1', // Mæ -> গু
+        'M\u0192': '\u0997\u09C1', // Mƒ -> গু
+        'k\u00E6': '\u09B6\u09C1', // kæ -> শু
+        'k\u201A': '\u09B6\u09C2', // k‚ -> শূ
+        'n\u0192': '\u09B9\u09C1', // nƒ -> হু
+        'n\u00FC': '\u09B9\u09C3', // nü -> হৃ
+        'n\u2026': '\u09B9\u09C3', // n… -> হৃ
+        'K\u2026': '\u0995\u09C3', // K… -> কৃ
+        'M\u2026': '\u0997\u09C3', // M… -> গৃ
+        'Z\u2026': '\u09A4\u09C3', // Z… -> তৃ
+        '`\u2026': '\u09A6\u09C3', // `… -> দৃ
+        'c\u2026': '\u09AA\u09C3', // c… -> পৃ
+        'e\u2026': '\u09AC\u09C3', // e… -> বৃ
+        'f\u2026': '\u09AD\u09C3', // f… -> ভৃ
+        'g\u2026': '\u09AE\u09C3', // g… -> মৃ
+        'k\u2026': '\u09B6\u09C3', // k… -> শৃ
+        'm\u2026': '\u09B8\u09C3', // m… -> সৃ
+
+        // Specific Extended ANSI Conjuncts (SutonnyMJ)
+        '\u00B6': '\u0995\u09CD\u09B7', // ¶ -> ক্ষ
+        '\u00FF': '\u0995\u09CD\u09B7', // ÿ -> ক্ষ
+        '\u00C1': '\u099C\u09CD\u099E', // Á -> জ্ঞ
+        '\u00C0': '\u099C\u09CD\u099E', // À -> জ্ঞ
+        '\u00C4': '\u099E\u09CD\u099C', // Ä -> ঞ্জ
+        '\u00A2': '\u099E\u09CD\u099C', // ¢ -> ঞ্জ
+        '\u00C2': '\u099E\u09CD\u099A', // Â -> ঞ্চ
+        '\u00C3': '\u099E\u09CD\u099A', // Ã -> ঞ্চ
+        '\u00A1': '\u099E\u09CD\u099B', // ¡ -> ঞ্ছ
+        '\u00C5': '\u099E\u09CD\u099D', // Å -> ঞ্ঝ
+        '\u00C6': '\u099F\u09CD\u099F', // Æ -> ট্ট
+        '\u00C7': '\u09A1\u09CD\u09A1', // Ç -> ড্ড
+        '\u00C8': '\u09A3\u09CD\u099F', // È -> ণ্ট
+        '\u00C9': '\u09A3\u09CD\u09A0', // É -> ণ্ঠ
+        '\u00CA': '\u09A3\u09CD\u09A1', // Ê -> ণ্ড
+        '\u00CB': '\u09A4\u09CD\u09A4', // Ë -> ত্ত
+        '\u00A3': '\u09A4\u09CD\u09A4', // £ -> ত্ত
+        '\u00CC': '\u09A4\u09CD\u09A5', // Ì -> ত্থ
+        '\u00A4': '\u09A4\u09CD\u09A5', // ¤ -> ত্থ
+        '\u00CE': '\u09A4\u09CD\u09B0', // Î -> ত্র
+        '\u00A5': '\u09A4\u09CD\u09B0', // ¥ -> ত্র
+        '\u00CF': '\u09A6\u09CD\u09A6', // Ï -> দ্দ
+        '\u00A6': '\u09A6\u09CD\u09A6', // ¦ -> দ্দ
+        '\u00D7': '\u09A6\u09CD\u09A7', // × -> দ্ধ
+        '\u00A7': '\u09A6\u09CD\u09A7', // § -> দ্ধ
+        '\u00D8': '\u09A6\u09CD\u09AC', // Ø -> দ্ব
+        '\u00D9': '\u09A6\u09CD\u09AE', // Ù -> দ্ম
+        '\u00DB': '\u09A8\u09CD\u09A1', // Û -> ন্ড
+        '\u00DC': '\u09A8\u09CD\u09A7', // Ü -> ন্ধ
+        '\u00DD': '\u09A8\u09CD\u09B8', // Ý -> ন্স
+        '\u00DE': '\u09AA\u09CD\u099F', // Þ -> প্ট
+        '\u00DF': '\u09AA\u09CD\u09A4', // ß -> প্ত
+        '\u00E0': '\u09AA\u09CD\u09AA', // à -> প্প
+        '\u00E1': '\u09AA\u09CD\u09B8', // á -> প্স
+        '\u00E2': '\u09AC\u09CD\u099C', // â -> ব্জ
+        '\u00E3': '\u09AC\u09CD\u09A6', // ã -> ব্দ
+        '\u00B7': '\u09AC\u09CD\u09A6', // · -> ব্দ
+        '\u00E4': '\u09AC\u09CD\u09A7', // ä -> ব্ধ
+        '\u00E9': '\u09B2\u09CD\u0995', // é -> ল্ক
+        '\u00FD': '\u09B9\u09CD\u09A8', // ý -> হ্ন
+        '\u00EA': '\u09B2\u09CD\u0997', // ê -> ল্গ
+        '\u00FE': '\u09B9\u09CD\u09AE', // þ -> হ্ম
+        '\u00EB': '\u09B2\u09CD\u099F', // ë -> ল্ট
+        '\u00EC': '\u09B2\u09CD\u09A1', // ì -> ল্ড
+        '\u00ED': '\u09B2\u09CD\u09AA', // í -> ল্প
+        '\u00EE': '\u09B2\u09CD\u09AC', // î -> ল্ব
+        '\u00EF': '\u09B2\u09CD\u09AE', // ï -> ল্ম
+        '\u00F0': '\u09B6\u09CD\u099A', // ð -> শ্চ
+        '\u00F1': '\u09B6\u09CD\u099B', // ñ -> শ্ছ
+        '\u00F2': '\u09B7\u09CD\u09A3', // ò -> ষ্ণ
+        '\u00F3': '\u09B7\u09CD\u099F', // ó -> ষ্ট
+        '\u00F4': '\u09B7\u09CD\u09A0', // ô -> ষ্ঠ
+        '\u00F6': '\u09B8\u09CD\u0996', // ö -> স্খ
+        '\u00F7': '\u09B8\u09CD\u099F', // ÷ -> স্ট
+        '\u00F9': '\u09B8\u09CD\u09AB', // ù -> স্ফ
+        '\u00FA': '\u09B8\u09CD\u09A4\u09C1', // ú -> স্তু
+        '\u00B3': '\u0995\u09CD\u09A4', // ³ -> ক্ত
+        '\u00B5': '\u0995\u09CD\u09B0', // µ -> ক্র
+        '\u00B0': '\u0995\u09CD\u0995', // ° -> ক্ক
+        '\u00B1': '\u0995\u09CD\u099F', // ± -> ক্ট
+        '\u00B8': '\u0997\u09CD\u09A7', // ¸ -> গ্ধ
+        '\u00BB': '\u0997\u09CD\u09A7', // » -> গ্ধ
+        '\u00BC': '\u0999\u09CD\u0995', // ¼ -> ঙ্ক
+        '\u00BD': '\u0999\u09CD\u0997', // ½ -> ঙ্গ
+        '\u00BE': '\u099C\u09CD\u099C', // ¾ -> জ্জ
+        '\u00BF': '\u099C\u09CD\u099D', // ¿ -> জ্ঝ
+        '\u00AC': '\u09CD\u09B2',       // ¬ -> ্ল
+        '\u00AD': '\u09CD\u09AC',       // soft-hyphen -> ্ব
+        '\u00AE': '\u09CD\u09AE',       // ® -> ্ম
+        '\u00AF': '\u09CD\u09A8',       // ¯ -> ্ন
+        '\u00B2': '\u09A8\u09CD\u09A6', // ² -> ন্দ
+        '\u00B4': '\u09A8\u09CD\u09A7', // ´ -> ন্ধ
+
+        // Additional SutonnyMJ multi-key & single-key ligatures
+        '\u2014': '\u09A4\u09CD\u09A4',       // — -> ত্ত (contextual)
+        '\u00B9': '\u0997\u09CD\u09B0',       // ¹ -> গ্র
+        '\u00BA': '\u0997\u09CD\u09B2',       // º -> গ্ল
+        '\u00D0': '\u09A4\u09CD\u09B0',       // Ð -> ত্র
+        '\u00D1': '\u09A5\u09CD\u09AC',       // Ñ -> থ্ব
+        '\u00E5': '\u09AD\u09CD\u09B0',       // å -> ভ্র
+        '\u00E7': '\u09AE\u09CD\u09AA',       // ç -> ম্প
+        '\u00E8': '\u09AE\u09CD\u09AD',       // è -> ম্ভ
+        '\u00F5': '\u09B7\u09CD\u09AA',       // õ -> ষ্প
+        '\u00F8': '\u09B8\u09CD\u09AA',       // ø -> স্প
+        '\u00FB': '\u09B8\u09CD\u09AC',       // û -> স্ব
+        'b\u00B2': '\u09A8\u09CD\u09A6',      // b² -> ন্দ
+        'b\u00B4': '\u09A8\u09CD\u09A7',      // b´ -> ন্ধ
+        'b\u00D6': '\u09A8\u09CD\u09B0',      // bÖ -> ন্র
+        'K\u00D6': '\u0995\u09CD\u09B0',      // KÖ -> ক্র
+        'Z\u00D6': '\u09A4\u09CD\u09B0',      // ZÖ -> ত্র
+        '`\u00D6': '\u09A6\u09CD\u09B0',      // `Ö -> দ্র
+        'e\u00D6': '\u09AC\u09CD\u09B0',      // eÖ -> ব্র
+        'f\u00D6': '\u09AD\u09CD\u09B0',      // fÖ -> ভ্র
+        'm\u00D6': '\u09B8\u09CD\u09B0',      // mÖ -> স্র
+
+        // Multi-key SutonnyMJ Conjunct Sequences
+        '\u0161\u2014\u00A1': '\u09A8\u09CD\u09A4\u09CD\u09AC', // š—¡ -> ন্ত্ব
+        '\u0161\u00BF': '\u09A8\u09CD\u09A4\u09CD\u09B0',       // š¿ -> ন্ত্র
+        '\u0161\u2014': '\u09A8\u09CD\u09A4',                   // š— -> ন্ত
+        '\u0161\u2019': '\u09A8\u09CD\u09A5',                   // š’ -> ন্থ
+        '\u203A`\u00AA': '\u09A8\u09CD\u09A6\u09CD\u09B0',      // ›`ª -> ন্দ্র
+        '\u203A`': '\u09A8\u09CD\u09A6',                         // ›` -> ন্দ
+        '\u203AU': '\u09A8\u09CD\u099F',                         // ›U -> ন্ট
+        'b\u0153': '\u09A8\u09CD\u09A8',                         // bœ -> ন্ন
+        '\u0161^': '\u09A8\u09CD\u09AC',                         // š^ -> ন্ব
+        'b\u00A5': '\u09A8\u09CD\u09AE',                         // b¥ -> ন্ম
+        'M\u0153': '\u0997\u09CD\u09A8',                         // Mœ -> গ্ন
+        'M\u00A5': '\u0997\u09CD\u09AE',                         // M¥ -> গ্ম
+        'M\u00AC': '\u0997\u09CD\u09B2',                         // M¬ -> গ্ল
+        'M\u00D6': '\u0997\u09CD\u09B0',                         // MÖ -> গ্র
+        'N\u0153': '\u0998\u09CD\u09A8',                         // Nœ -> ঘ্ন
+        'N\u00AA': '\u0998\u09CD\u09B0',                         // Nª -> ঘ্র
+        '\u201DP': '\u099A\u09CD\u099A',                         // ”P -> চ্চ
+        '\u201DQ': '\u099A\u09CD\u099B',                         // ”Q -> চ্ছ
+        'R\u00A1': '\u099C\u09CD\u09AC',                         // R¡ -> জ্ব
+        'R\u00AA': '\u099C\u09CD\u09B0',                         // Rª -> জ্র
+        'U\u00AA': '\u099F\u09CD\u09B0',                         // Uª -> ট্র
+        'W\u00AA': '\u09A1\u09CD\u09B0',                         // Wª -> ড্র
+        'X\u00AA': '\u09A2\u09CD\u09B0',                         // Xª -> ঢ্র
+        'o\u00AA': '\u09DC\u09CD\u09B0',                         // oª -> ড়্র
+        'Z\u0153': '\u09A4\u09CD\u09A8',                         // Zœ -> ত্ন
+        'Z\u00A1': '\u09A4\u09CD\u09AC',                         // Z¡ -> ত্ব
+        'Z\u00A5': '\u09A4\u09CD\u09AE',                         // Z¥ -> ত্ম
+        '\u00CB\u00A1': '\u09A4\u09CD\u09A4\u09CD\u09AC',       // Ë¡ -> ত্ত্ব
+        '\u2122\u00A2': '\u09A6\u09CD\u09AD',                   // ™¢ -> দ্ভ
+        '`\u00AA': '\u09A6\u09CD\u09B0',                         // `ª -> দ্র
+        'a\u00A1': '\u09A7\u09CD\u09AC',                         // a¡ -> ধ্ব
+        'a\u00A5': '\u09A7\u09CD\u09AE',                         // a¥ -> ধ্ম
+        'a\u00AA': '\u09A7\u09CD\u09B0',                         // aª -> ধ্র
+        'c\u0153': '\u09AA\u09CD\u09A8',                         // cœ -> প্ন
+        'c\u00AC': '\u09AA\u09CD\u09B2',                         // c¬ -> প্ল
+        'c\u00D6': '\u09AA\u09CD\u09B0',                         // cÖ -> প্র
+        'd\u00AC': '\u09AB\u09CD\u09B2',                         // d¬ -> ফ্ল
+        'd\u00AA': '\u09AB\u09CD\u09B0',                         // dª -> ফ্র
+        'e\u0178': '\u09AC\u09CD\u09AC',                         // eŸ -> ব্ব
+        'e\u00AC': '\u09AC\u09CD\u09B2',                         // e¬ -> ব্ল
+        'e\u00AA': '\u09AC\u09CD\u09B0',                         // eª -> ব্র
+        'f\u00AC': '\u09AD\u09CD\u09B2',                         // f¬ -> ভ্ল
+        'f\u00AA': '\u09AD\u09CD\u09B0',                         // fª -> ভ্র
+        'g\u0153': '\u09AE\u09CD\u09A8',                         // gœ -> ম্ন
+        '\u00A4\u00FA': '\u09AE\u09CD\u09AA',                   // ¤ú -> ম্প
+        '\u00A4\u00F9': '\u09AE\u09CD\u09AB',                   // ¤ù -> ম্ফ
+        '\u00A4^': '\u09AE\u09CD\u09AC',                         // ¤^ -> ম্ব
+        '\u00A4\u00A2': '\u09AE\u09CD\u09AD',                   // ¤¢ -> ম্ভ
+        '\u00A4\u00A7': '\u09AE\u09CD\u09AE',                   // ¤§ -> ম্ম
+        '\u00A4\u00AC': '\u09AE\u09CD\u09B2',                   // ¤¬ -> ম্ল
+        'g\u00AA': '\u09AE\u09CD\u09B0',                         // gª -> ম্র
+        'j\u00F8': '\u09B2\u09CD\u09B2',                         // jø -> ল্ল
+        'k\u0153': '\u09B6\u09CD\u09A8',                         // kœ -> শ্ন
+        'k^': '\u09B6\u09CD\u09AC',                              // k^ -> শ্ব
+        'k\u00A5': '\u09B6\u09CD\u09AE',                         // k¥ -> শ্ম
+        'k\u00AC': '\u09B6\u09CD\u09B2',                         // k¬ -> শ্ল
+        'k\u00D6': '\u09B6\u09CD\u09B0',                         // kÖ -> শ্র
+        '\u00AE\u2039': '\u09B7\u09CD\u0995',                   // ®‹ -> ষ্ক
+        '\u00AE\u00FA': '\u09B7\u09CD\u09AA',                   // ®ú -> ষ্প
+        '\u00AE\u00F9': '\u09B7\u09CD\u09AB',                   // ®ù -> ষ্ফ
+        '\u00AE^': '\u09B7\u09CD\u09AC',                         // ®^ -> ষ্ব
+        '\u00AE\u00A7': '\u09B7\u09CD\u09AE',                   // ®§ -> ষ্ম
+        '\u00AF\u2039': '\u09B8\u09CD\u0995',                   // ¯‹ -> স্ক
+        '\u00AF\u2014': '\u09B8\u09CD\u09A4',                   // ¯— -> স্ত
+        '\u00AF\u00BF': '\u09B8\u09CD\u09A4\u09CD\u09B0',       // ¯¿ -> স্ত্র
+        '\u00AF\u2019': '\u09B8\u09CD\u09A5',                   // ¯’ -> স্থ
+        'm\u0153': '\u09B8\u09CD\u09A8',                         // mœ -> স্ন
+        '\u00AF\u00FA': '\u09B8\u09CD\u09AA',                   // ¯ú -> স্প
+        '\u00AF^': '\u09B8\u09CD\u09AC',                         // ¯^ -> স্ব
+        '\u00AF\u00A7': '\u09B8\u09CD\u09AE',                   // ¯§ -> স্ম
+        '\u00AF\u00AC': '\u09B8\u09CD\u09B2',                   // ¯¬ -> স্ল
+        'm\u00AA': '\u09B8\u09CD\u09B0',                         // mª -> স্র
+        'n\u00E8': '\u09B9\u09CD\u09A3',                         // nè -> হ্ণ
+        'n\u0178': '\u09B9\u09CD\u09AC',                         // nŸ -> হ্ব
+        'n\u00AC': '\u09B9\u09CD\u09B2',                         // n¬ -> হ্ল
+        'n\u00AA': '\u09B9\u09CD\u09B0',                         // nª -> হ্র
+        'n\u00AB': '\u09B9\u09CD\u09B0',                         // n« -> হ্র
+        '\u2022L': '\u0999\u09CD\u0996',                         // •L -> ঙ্খ
+        '\u2022N': '\u0999\u09CD\u0998',                         // •N -> ঙ্ঘ
+        'K\u00AC': '\u0995\u09CD\u09B2',                         // K¬ -> ক্ল
+        '\u00B6&g': '\u0995\u09CD\u09B7\u09CD\u09AE',             // ¶&g -> ক্ষ্ম
+        '\u00B6&Y': '\u0995\u09CD\u09B7\u09CD\u09A3',             // ¶&Y -> ক্ষ্ণ
+        '\u00B6&e': '\u0995\u09CD\u09B7\u09CD\u09AC'              // ¶&e -> ক্ষ্ব
+      };
+
+      // O(1) First-Character Prefix Index for fast, non-blocking Bijoy -> Unicode lookup
+      var BIJOY_PREFIX_INDEX = Object.create(null);
+      Object.keys(BIJOY_TO_UNICODE_MAP).forEach(function (key) {
+        if (!key || key === 'Av' || key === 'A') return;
+        var firstCh = key.charAt(0);
+        if (!BIJOY_PREFIX_INDEX[firstCh]) {
+          BIJOY_PREFIX_INDEX[firstCh] = [];
+        }
+        BIJOY_PREFIX_INDEX[firstCh].push(key);
+      });
+      Object.keys(BIJOY_PREFIX_INDEX).forEach(function (ch) {
+        BIJOY_PREFIX_INDEX[ch].sort(function (a, b) {
+          return b.length - a.length;
+        });
+      });
+
+      // -------------------------------------------------------------------------
+      // 2. UNICODE -> BIJOY (ANSI) MAPPING TABLE
+      // -------------------------------------------------------------------------
+      var UNICODE_TO_BIJOY_MAP = {
+        // Independent Vowels
+        '\u0985': 'A',  // অ
+        '\u0986': 'Av', // আ
+        '\u0987': 'B',  // ই
+        '\u0988': 'C',  // ঈ
+        '\u0989': 'D',  // উ
+        '\u098A': 'E',  // ঊ
+        '\u098B': 'F',  // ঋ
+        '\u098F': 'G',  // এ
+        '\u0990': 'H',  // ঐ
+        '\u0993': 'I',  // ও
+        '\u0994': 'J',  // ঔ
+
+        // Digits & Punctuation
+        '\u09E6': '0', // ০
+        '\u09E7': '1', // ১
+        '\u09E8': '2', // ২
+        '\u09E9': '3', // ৩
+        '\u09EA': '4', // ৪
+        '\u09EB': '5', // ৫
+        '\u09EC': '6', // ৬
+        '\u09ED': '7', // ৭
+        '\u09EE': '8', // ৮
+        '\u09EF': '9', // ৯
+        '\u0964': '|', // ।
+        '\u2018': '\u00D4', // ‘ -> Ô
+        '\u2019': '\u00D5', // ’ -> Õ
+        '\u201C': '\u00D2', // “ -> Ò
+        '\u201D': '\u00D3', // ” -> Ó
+
+        // Dependent Vowel Signs & Modifiers
+        '\u09BE': 'v',      // া
+        '\u09BF': 'w',      // ি
+        '\u09C0': 'x',      // ী
+        '\u09C1': 'y',      // ু
+        '\u09C2': '~',      // ূ
+        '\u09C3': '\u2026', // ৃ -> …
+        '\u09C7': '\u2021', // ে -> ‡
+        '\u09C8': '\u2030', // ৈ -> ‰
+        '\u09D7': '\u0160', // ৗ -> Š
+        '\u0982': 's',      // ং
+        '\u0983': 't',      // ঃ
+        '\u0981': 'u',      // ঁ
+        '\u09CD': '&',      // ্
+
+        // Base Consonants
+        '\u0995': 'K', // ক
+        '\u0996': 'L', // খ
+        '\u0997': 'M', // গ
+        '\u0998': 'N', // ঘ
+        '\u0999': 'O', // ঙ
+        '\u099A': 'P', // চ
+        '\u099B': 'Q', // ছ
+        '\u099C': 'R', // জ
+        '\u099D': 'S', // ঝ
+        '\u099E': 'T', // ঞ
+        '\u099F': 'U', // ট
+        '\u09A0': 'V', // ঠ
+        '\u09A1': 'W', // ড
+        '\u09A2': 'X', // ঢ
+        '\u09A3': 'Y', // ণ
+        '\u09A4': 'Z', // ত
+        '\u09A5': '_', // থ
+        '\u09A6': '`', // দ
+        '\u09A7': 'a', // ধ
+        '\u09A8': 'b', // ন
+        '\u09AA': 'c', // প
+        '\u09AB': 'd', // ফ
+        '\u09AC': 'e', // ব
+        '\u09AD': 'f', // ভ
+        '\u09AE': 'g', // ম
+        '\u09AF': 'h', // য
+        '\u09B0': 'i', // র
+        '\u09B2': 'j', // ল
+        '\u09B6': 'k', // শ
+        '\u09B7': 'l', // ষ
+        '\u09B8': 'm', // স
+        '\u09B9': 'n', // হ
+        '\u09DC': 'o', // ড়
+        '\u09DD': 'p', // ঢ়
+        '\u09DF': 'q', // য়
+        '\u09CE': 'r', // ৎ
+
+        // Special Consonant + Vowel Ligatures
+        '\u09B0\u09C1': 'i\u00E6', // রু -> iæ
+        '\u09B0\u09C2': 'i\u201A', // রূ -> i‚
+        '\u0997\u09C1': 'M\u00E6', // গু -> Mæ
+        '\u09B6\u09C1': 'k\u00E6', // শু -> kæ
+        '\u09B6\u09C2': 'k\u201A', // শূ -> k‚
+        '\u09B9\u09C1': 'n\u0192', // হু -> nƒ
+        '\u09B9\u09C3': 'n\u00FC', // হৃ -> nü
+        '\u0995\u09C3': 'K\u2026', // কৃ -> K…
+        '\u0997\u09C3': 'M\u2026', // গৃ -> M…
+        '\u09A4\u09C3': 'Z\u2026', // তৃ -> Z…
+        '\u09A6\u09C3': '`\u2026', // দৃ -> `…
+        '\u09AA\u09C3': 'c\u2026', // পৃ -> c…
+        '\u09AC\u09C3': 'e\u2026', // বৃ -> e…
+        '\u09AD\u09C3': 'f\u2026', // ভৃ -> f…
+        '\u09AE\u09C3': 'g\u2026', // মৃ -> g…
+        '\u09B6\u09C3': 'k\u2026', // শৃ -> k…
+        '\u09B8\u09C3': 'm\u2026', // সৃ -> m…
+
+        // Comprehensive Conjuncts (যুক্তাক্ষর) -> SutonnyMJ
+        '\u0995\u09CD\u09B7\u09CD\u09AE': '\u00B6&g', // ক্ষ্ম
+        '\u0995\u09CD\u09B7\u09CD\u09A3': '\u00B6&Y', // ক্ষ্ণ
+        '\u0995\u09CD\u09B7\u09CD\u09AC': '\u00B6&e', // ক্ষ্ব
+        '\u0995\u09CD\u09B7': '\u00B6',             // ক্ষ -> ¶
+        '\u099C\u09CD\u099E': '\u00C1',             // জ্ঞ -> Á
+        '\u099E\u09CD\u099C': '\u00C4',             // ঞ্জ -> Ä
+        '\u099E\u09CD\u099A': '\u00C2',             // ঞ্চ -> Â
+        '\u099E\u09CD\u099B': '\u00A1',             // ঞ্ছ -> ¡
+        '\u099E\u09CD\u099D': '\u00C5',             // ঞ্ঝ -> Å
+        '\u099F\u09CD\u099F': '\u00C6',             // ট্ট -> Æ
+        '\u09A1\u09CD\u09A1': '\u00C7',             // ড্ড -> Ç
+        '\u09A3\u09CD\u099F': '\u00C8',             // ণ্ট -> È
+        '\u09A3\u09CD\u09A0': '\u00C9',             // ণ্ঠ -> É
+        '\u09A3\u09CD\u09A1': '\u00CA',             // ণ্ড -> Ê
+        '\u09A4\u09CD\u09A4\u09CD\u09AC': '\u00CB\u00A1', // ত্ত্ব -> Ë¡
+        '\u09A4\u09CD\u09A4': '\u00CB',             // ত্ত -> Ë
+        '\u09A4\u09CD\u09A5': '\u00CC',             // ত্থ -> Ì
+        '\u09A4\u09CD\u09B0': '\u00CE',             // ত্র -> Î
+        '\u09A6\u09CD\u09A6': '\u00CF',             // দ্দ -> Ï
+        '\u09A6\u09CD\u09A7': '\u00D7',             // দ্ধ -> ×
+        '\u09A6\u09CD\u09AC': '\u00D8',             // দ্ব -> Ø
+        '\u09A6\u09CD\u09AE': '\u00D9',             // দ্ম -> Ù
+        '\u09A8\u09CD\u09A4\u09CD\u09AC': '\u0161\u2014\u00A1', // ন্ত্ব -> š—¡
+        '\u09A8\u09CD\u09A4\u09CD\u09B0': '\u0161\u00BF',       // ন্ত্র -> š¿
+        '\u09A8\u09CD\u09A4': '\u0161\u2014',       // ন্ত -> š—
+        '\u09A8\u09CD\u09A5': '\u0161\u2019',       // ন্থ -> š’
+        '\u09A8\u09CD\u09A6\u09CD\u09B0': '\u203A`\u00AA',      // ন্দ্র -> ›`ª
+        '\u09A8\u09CD\u09A6': '\u203A`',            // ন্দ -> ›`
+        '\u09A8\u09CD\u09A7': '\u00DC',             // ন্ধ -> Ü
+        '\u09A8\u09CD\u09A8': 'b\u0153',            // ন্ন -> bœ
+        '\u09A8\u09CD\u09AC': '\u0161^',            // ন্ব -> š^
+        '\u09A8\u09CD\u09AE': 'b\u00A5',            // ন্ম -> b¥
+        '\u09A8\u09CD\u099F': '\u203AU',            // ন্ট -> ›U
+        '\u09A8\u09CD\u09A1': '\u00DB',             // ন্ড -> Û
+        '\u09A8\u09CD\u09B8': '\u00DD',             // ন্স -> Ý
+        '\u0995\u09CD\u09A4': '\u00B3',             // ক্ত -> ³
+        '\u0995\u09CD\u09B0': '\u00B5',             // ক্র -> µ
+        '\u0995\u09CD\u09B2': 'K\u00AC',            // ক্ল -> K¬
+        '\u0995\u09CD\u0995': '\u00B0',             // ক্ক -> °
+        '\u0995\u09CD\u099F': '\u00B1',             // ক্ট -> ±
+        '\u0995\u09CD\u09B8': '\u00B7',             // ক্স -> ·
+        '\u0997\u09CD\u09A7': '\u00BB',             // গ্ধ -> »
+        '\u0997\u09CD\u09A8': 'M\u0153',            // গ্ন -> Mœ
+        '\u0997\u09CD\u09AE': 'M\u00A5',            // গ্ম -> M¥
+        '\u0997\u09CD\u09B2': 'M\u00AC',            // গ্ল -> M¬
+        '\u0997\u09CD\u09B0': 'M\u00D6',            // গ্র -> MÖ
+        '\u0998\u09CD\u09A8': 'N\u0153',            // ঘ্ন -> Nœ
+        '\u0998\u09CD\u09B0': 'N\u00AA',            // ঘ্র -> Nª
+        '\u099A\u09CD\u099A': '\u201DP',            // চ্চ -> ”P
+        '\u099A\u09CD\u099B': '\u201DQ',            // চ্ছ -> ”Q
+        '\u099C\u09CD\u099C': '\u00BE',             // জ্জ -> ¾
+        '\u099C\u09CD\u099D': '\u00BF',             // জ্ঝ -> ¿
+        '\u099C\u09CD\u09AC': 'R\u00A1',            // জ্ব -> R¡
+        '\u099C\u09CD\u09B0': 'R\u00AA',            // জ্র -> Rª
+        '\u099F\u09CD\u09B0': 'U\u00AA',            // ট্র -> Uª
+        '\u09A1\u09CD\u09B0': 'W\u00AA',            // ড্র -> Wª
+        '\u09A2\u09CD\u09B0': 'X\u00AA',            // ঢ্র -> Xª
+        '\u09DC\u09CD\u09B0': 'o\u00AA',            // ড়্র -> oª
+        '\u09A4\u09CD\u09A8': 'Z\u0153',            // ত্ন -> Zœ
+        '\u09A4\u09CD\u09AC': 'Z\u00A1',            // ত্ব -> Z¡
+        '\u09A4\u09CD\u09AE': 'Z\u00A5',            // ত্ম -> Z¥
+        '\u09A6\u09CD\u09AD': '\u2122\u00A2',       // দ্ভ -> ™¢
+        '\u09A6\u09CD\u09B0': '`\u00AA',            // দ্র -> `ª
+        '\u09A7\u09CD\u09AC': 'a\u00A1',            // ধ্ব -> a¡
+        '\u09A7\u09CD\u09AE': 'a\u00A5',            // ধ্ম -> a¥
+        '\u09A7\u09CD\u09B0': 'a\u00AA',            // ধ্র -> aª
+        '\u09AA\u09CD\u099F': '\u00DE',             // প্ট -> Þ
+        '\u09AA\u09CD\u09A4': '\u00DF',             // প্ত -> ß
+        '\u09AA\u09CD\u09A8': 'c\u0153',            // প্ন -> cœ
+        '\u09AA\u09CD\u09AA': '\u00E0',             // প্প -> à
+        '\u09AA\u09CD\u09B2': 'c\u00AC',            // প্ল -> c¬
+        '\u09AA\u09CD\u09B0': 'c\u00D6',            // প্র -> cÖ
+        '\u09AA\u09CD\u09B8': '\u00E1',             // প্স -> á
+        '\u09AB\u09CD\u09B2': 'd\u00AC',            // ফ্ল -> d¬
+        '\u09AB\u09CD\u09B0': 'd\u00AA',            // ফ্র -> dª
+        '\u09AC\u09CD\u099C': '\u00E2',             // ব্জ -> â
+        '\u09AC\u09CD\u09A6': '\u00E3',             // ব্দ -> ã
+        '\u09AC\u09CD\u09A7': '\u00E4',             // ব্ধ -> ä
+        '\u09AC\u09CD\u09AC': 'e\u0178',            // ব্ব -> eŸ
+        '\u09AC\u09CD\u09B2': 'e\u00AC',            // ব্ল -> e¬
+        '\u09AC\u09CD\u09B0': 'e\u00AA',            // ব্র -> eª
+        '\u09AD\u09CD\u09B2': 'f\u00AC',            // ভ্ল -> f¬
+        '\u09AD\u09CD\u09B0': 'f\u00AA',            // ভ্র -> fª
+        '\u09AE\u09CD\u09A8': 'g\u0153',            // ম্ন -> gœ
+        '\u09AE\u09CD\u09AA': '\u00A4\u00FA',       // ম্প -> ¤ú
+        '\u09AE\u09CD\u09AB': '\u00A4\u00F9',       // ম্ফ -> ¤ù
+        '\u09AE\u09CD\u09AC': '\u00A4^',            // ম্ব -> ¤^
+        '\u09AE\u09CD\u09AD': '\u00A4\u00A2',       // ম্ভ -> ¤¢
+        '\u09AE\u09CD\u09AE': '\u00A4\u00A7',       // ম্ম -> ¤§
+        '\u09AE\u09CD\u09B2': '\u00A4\u00AC',       // ম্ল -> ¤¬
+        '\u09AE\u09CD\u09B0': 'g\u00AA',            // ম্র -> gª
+        '\u09B2\u09CD\u0995': '\u00E9',             // ল্ক -> é
+        '\u09B2\u09CD\u0997': '\u00EA',             // ল্গ -> ê
+        '\u09B2\u09CD\u099F': '\u00EB',             // ল্ট -> ë
+        '\u09B2\u09CD\u09A1': '\u00EC',             // ল্ড -> ì
+        '\u09B2\u09CD\u09AA': '\u00ED',             // ল্প -> í
+        '\u09B2\u09CD\u09AC': '\u00EE',             // ল্ব -> î
+        '\u09B2\u09CD\u09AE': '\u00EF',             // ল্ম -> ï
+        '\u09B2\u09CD\u09B2': 'j\u00F8',            // ল্ল -> jø
+        '\u09B6\u09CD\u099A': '\u00F0',             // শ্চ -> ð
+        '\u09B6\u09CD\u099B': '\u00F1',             // শ্ছ -> ñ
+        '\u09B6\u09CD\u09A8': 'k\u0153',            // শ্ন -> kœ
+        '\u09B6\u09CD\u09AC': 'k^',                 // শ্ব -> k^
+        '\u09B6\u09CD\u09AE': 'k\u00A5',            // শ্ম -> k¥
+        '\u09B6\u09CD\u09B2': 'k\u00AC',            // শ্ল -> k¬
+        '\u09B6\u09CD\u09B0': 'k\u00D6',            // শ্র -> kÖ
+        '\u09B7\u09CD\u0995': '\u00AE\u2039',       // ষ্ক -> ®‹
+        '\u09B7\u09CD\u099F': '\u00F3',             // ষ্ট -> ó
+        '\u09B7\u09CD\u09A0': '\u00F4',             // ষ্ঠ -> ô
+        '\u09B7\u09CD\u09A3': '\u00F2',             // ষ্ণ -> ò
+        '\u09B7\u09CD\u09AA': '\u00AE\u00FA',       // ষ্প -> ®ú
+        '\u09B7\u09CD\u09AB': '\u00AE\u00F9',       // ষ্ফ -> ®ù
+        '\u09B7\u09CD\u09AC': '\u00AE^',            // ষ্ব -> ®^
+        '\u09B7\u09CD\u09AE': '\u00AE\u00A7',       // ষ্ম -> ®§
+        '\u09B8\u09CD\u0995': '\u00AF\u2039',       // স্ক -> ¯‹
+        '\u09B8\u09CD\u0996': '\u00F6',             // স্খ -> ö
+        '\u09B8\u09CD\u099F': '\u00F7',             // স্ট -> ÷
+        '\u09B8\u09CD\u09A4\u09C1': '\u00FA',       // স্তু -> ú
+        '\u09B8\u09CD\u09A4\u09CD\u09B0': '\u00AF\u00BF', // স্ত্র -> ¯¿
+        '\u09B8\u09CD\u09A4': '\u00AF\u2014',       // স্ত -> ¯—
+        '\u09B8\u09CD\u09A5': '\u00AF\u2019',       // স্থ -> ¯’
+        '\u09B8\u09CD\u09A8': 'm\u0153',            // স্ন -> mœ
+        '\u09B8\u09CD\u09AA': '\u00AF\u00FA',       // স্প -> ¯ú
+        '\u09B8\u09CD\u09AB': '\u00F9',             // স্ফ -> ù
+        '\u09B8\u09CD\u09AC': '\u00AF^',            // স্ব -> ¯^
+        '\u09B8\u09CD\u09AE': '\u00AF\u00A7',       // স্ম -> ¯§
+        '\u09B8\u09CD\u09B2': '\u00AF\u00AC',       // স্ল -> ¯¬
+        '\u09B8\u09CD\u09B0': 'm\u00AA',            // স্র -> mª
+        '\u09B9\u09CD\u09A3': 'n\u00E8',            // হ্ণ -> nè
+        '\u09B9\u09CD\u09A8': '\u00FD',             // হ্ন -> ý
+        '\u09B9\u09CD\u09AC': 'n\u0178',            // হ্ব -> nŸ
+        '\u09B9\u09CD\u09AE': '\u00FE',             // হ্ম -> þ
+        '\u09B9\u09CD\u09B2': 'n\u00AC',            // হ্ল -> n¬
+        '\u09B9\u09CD\u09B0': 'n\u00AA',            // হ্র -> nª
+        '\u0999\u09CD\u0995': '\u00BC',             // ঙ্ক -> ¼
+        '\u0999\u09CD\u0996': '\u2022L',            // ঙ্খ -> •L
+        '\u0999\u09CD\u0997': '\u00BD',             // ঙ্গ -> ½
+        '\u0999\u09CD\u0998': '\u2022N',            // ঙ্ঘ -> •N
+
+        // Phalas (ফলা)
+        '\u09CD\u09B0': '\u00AA', // ্র -> ª
+        '\u09CD\u09AF': '\u00A8'  // ্য -> ¨
+      };
+
+      // O(1) First-Character Prefix Index for fast, non-blocking Unicode -> Bijoy lookup
+      var UNICODE_PREFIX_INDEX = Object.create(null);
+      Object.keys(UNICODE_TO_BIJOY_MAP).forEach(function (key) {
+        if (!key) return;
+        var firstCh = key.charAt(0);
+        if (!UNICODE_PREFIX_INDEX[firstCh]) {
+          UNICODE_PREFIX_INDEX[firstCh] = [];
+        }
+        UNICODE_PREFIX_INDEX[firstCh].push(key);
+      });
+      Object.keys(UNICODE_PREFIX_INDEX).forEach(function (ch) {
+        UNICODE_PREFIX_INDEX[ch].sort(function (a, b) {
+          return b.length - a.length;
+        });
+      });
+
+      // -------------------------------------------------------------------------
+      // 3. BIJOY -> UNICODE CONVERSION FUNCTION
+      // -------------------------------------------------------------------------
+      function isBanglaConsonant(ch) {
+        if (!ch) return false;
+        var code = ch.charCodeAt(0);
+        return (code >= 0x0995 && code <= 0x09B9) || (code >= 0x09DC && code <= 0x09DF);
+      }
+
+      function isPreBaseVowel(ch) {
+        return ch === '\u09BF' || ch === '\u09C7' || ch === '\u09C8'; // ি, ে, ৈ
+      }
+
+      /**
+       * Deterministically reads one Bangla consonant cluster starting at `idx`
+       * (Consonant + optional Nukta + zero or more [Hasanta + Consonant + optional Nukta])
+       */
+      function readConsonantCluster(str, idx) {
+        var pos = idx;
+        if (pos >= str.length || !isBanglaConsonant(str.charAt(pos))) {
+          return { cluster: '', nextIdx: idx };
+        }
+        pos++;
+        if (pos < str.length && str.charAt(pos) === '\u09BC') {
+          pos++;
+        }
+        while (pos < str.length && str.charAt(pos) === '\u09CD') {
+          var nextPos = pos + 1;
+          if (nextPos < str.length && isBanglaConsonant(str.charAt(nextPos))) {
+            pos = nextPos + 1;
+            if (pos < str.length && str.charAt(pos) === '\u09BC') {
+              pos++;
+            }
+          } else {
+            break;
+          }
+        }
+        return {
+          cluster: str.slice(idx, pos),
+          nextIdx: pos
+        };
+      }
+
+      function bijoyToUnicode(input) {
+        if (!input) return '';
+
+        // Normalize Av -> আ and standalone A -> অ
+        var str = input.replace(/Av/g, '\u0986').replace(/A/g, '\u0985');
+
+        var mapped = '';
+        var i = 0;
+        var len = str.length;
+        while (i < len) {
+          var firstCh = str.charAt(i);
+          var bucket = BIJOY_PREFIX_INDEX[firstCh];
+          var matched = false;
+          if (bucket) {
+            for (var k = 0; k < bucket.length; k++) {
+              var key = bucket[k];
+              if (str.startsWith(key, i)) {
+                mapped += BIJOY_TO_UNICODE_MAP[key];
+                i += key.length;
+                matched = true;
+                break;
+              }
+            }
+          }
+          if (!matched) {
+            mapped += firstCh;
+            i++;
+          }
+        }
+
+        // 1) Deterministic state-machine pass for pre-base vowels (ি \u09BF, ে \u09C7, ৈ \u09C8)
+        // Ensures consecutive pre-base vowels like "wewai" (ি+ব + ি+ধ + র) bind strictly
+        // to their immediately following consonant cluster -> "বিধির" instead of "বধিরি".
+        var reordered = '';
+        var idx = 0;
+        while (idx < mapped.length) {
+          var ch = mapped.charAt(idx);
+          if (isPreBaseVowel(ch)) {
+            var parsed = readConsonantCluster(mapped, idx + 1);
+            if (parsed.cluster.length > 0) {
+              reordered += parsed.cluster + ch;
+              idx = parsed.nextIdx;
+              continue;
+            }
+          }
+          reordered += ch;
+          idx++;
+        }
+        mapped = reordered;
+
+        // Consonant cluster regex for post-processing two-part vowels & Reph
+        var clusterPattern = '([\\u0995-\\u09B9\\u09DC-\\u09DF](?:\\u09BC)?(?:\\u09CD[\\u0995-\\u09B9\\u09DC-\\u09DF](?:\\u09BC)?)*)';
+
+        // 2) Combine two-part vowels: ে + া -> ো (\u09CB), ে + ৗ -> ৌ (\u09CC)
+        mapped = mapped
+          .replace(/\u09C7\u09BE/g, '\u09CB')
+          .replace(/\u09C7\u09D7/g, '\u09CC');
+
+        // 3) Reorder Reph (র্ placed after cluster/vowel/chandrabindu in Bijoy -> before cluster in Unicode)
+        var rephRe = new RegExp(clusterPattern + '([\\u09BE-\\u09CC\\u09D7]?)([\\u0981-\\u0983]?)\\u09B0\\u09CD', 'g');
+        mapped = mapped.replace(rephRe, '\u09B0\u09CD$1$2$3');
+
+        // 4) Ensure Chandrabindu/Anusvara/Visarga appear after dependent vowel signs
+        mapped = mapped.replace(/([\u0981-\u0983])([\u09BE-\u09CC\u09D7])/g, '$2$1');
+
+        // 5) Cleanup decomposed nuktas & duplicate halants
+        mapped = mapped
+          .replace(/\u0985\u09BE/g, '\u0986')
+          .replace(/\u09CD\u09CD/g, '\u09CD')
+          .replace(/\u09AF\u09BC/g, '\u09DF')
+          .replace(/\u09A1\u09BC/g, '\u09DC')
+          .replace(/\u09A2\u09BC/g, '\u09DD');
+
+        return mapped;
+      }
+
+      // -------------------------------------------------------------------------
+      // 4. UNICODE -> BIJOY CONVERSION FUNCTION
+      // -------------------------------------------------------------------------
+      function unicodeToBijoy(input) {
+        if (!input) return '';
+
+        // Normalize decomposed Bangla characters
+        var str = input
+          .replace(/\u09AF\u09BC/g, '\u09DF')
+          .replace(/\u09A1\u09BC/g, '\u09DC')
+          .replace(/\u09A2\u09BC/g, '\u09DD')
+          .replace(/\u09AC\u09BC/g, '\u09B0');
+
+        var clusterPattern = '([\\u0995-\\u09B9\\u09DC-\\u09DF](?:\\u09CD[\\u0995-\\u09B9\\u09DC-\\u09DF])*)';
+
+        // 1) Move Reph (র্) after consonant cluster + dependent vowel sign
+        var rephUnicodeRe = new RegExp('\\u09B0\\u09CD' + clusterPattern + '([\\u09BE-\\u09CC]?)', 'g');
+        str = str.replace(rephUnicodeRe, '$1$2__REPH__');
+
+        // 2) Split two-part vowels ো (\u09CB) and ৌ (\u09CC)
+        str = str
+          .replace(/\u09CB/g, '\u09C7\u09BE')
+          .replace(/\u09CC/g, '\u09C7\u09D7');
+        // 4) Greedy token mapping with O(1) prefix bucket lookup
+        var out = '';
+        var i = 0;
+        var len = str.length;
+        while (i < len) {
+          if (str.charCodeAt(i) === 95 && str.startsWith('__REPH__', i)) {
+            out += '\u00A9'; // ©
+            i += 8;
+            continue;
+          }
+
+          var firstCh = str.charAt(i);
+          var bucket = UNICODE_PREFIX_INDEX[firstCh];
+          var matched = false;
+          if (bucket) {
+            for (var k = 0; k < bucket.length; k++) {
+              var key = bucket[k];
+              if (str.startsWith(key, i)) {
+                out += UNICODE_TO_BIJOY_MAP[key];
+                i += key.length;
+                matched = true;
+                break;
+              }
+            }
+          }
+
+          if (!matched) {
+            out += firstCh;
+            i++;
+          }
+        }
+
+        return out;
+      }
+
+      // -------------------------------------------------------------------------
+      // 5. SMART SEGMENT / TOKEN ENCODING DETECTOR
+      // -------------------------------------------------------------------------
+      var COMMON_ENGLISH_WORDS = new Set([
+        'a', 'an', 'the', 'and', 'or', 'but', 'if', 'then', 'else', 'when', 'at', 'by', 'for', 'with',
+        'about', 'against', 'between', 'into', 'through', 'during', 'before', 'after', 'above', 'below',
+        'to', 'from', 'up', 'down', 'in', 'out', 'on', 'off', 'over', 'under', 'again', 'further', 'once',
+        'here', 'there', 'where', 'why', 'how', 'all', 'any', 'both', 'each', 'few', 'more', 'most', 'other',
+        'some', 'such', 'no', 'nor', 'not', 'only', 'own', 'same', 'so', 'than', 'too', 'very', 'can', 'will',
+        'just', 'should', 'now', 'is', 'am', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had',
+        'having', 'do', 'does', 'did', 'doing', 'would', 'could', 'ought', 'i', 'me', 'my', 'myself', 'we',
+        'our', 'ours', 'you', 'your', 'yours', 'he', 'him', 'his', 'she', 'her', 'hers', 'it', 'its', 'they',
+        'them', 'their', 'what', 'which', 'who', 'whom', 'this', 'that', 'these', 'those', 'as', 'of', 'ok',
+        'hi', 'hello', 'yes', 'email', 'url', 'http', 'https', 'www', 'com', 'org', 'net', 'edu', 'gov', 'bd',
+        'app', 'apps', 'web', 'code', 'data', 'file', 'text', 'user', 'name', 'time', 'date', 'year', 'day',
+        'new', 'good', 'best', 'free', 'open', 'save', 'copy', 'edit', 'view', 'page', 'home', 'link', 'click',
+        'login', 'admin', 'test', 'demo', 'api', 'js', 'html', 'css', 'json', 'pdf', 'doc', 'docx', 'unicode',
+        'bijoy', 'ansi', 'bangla', 'english', 'visit', 'contact', 'website', 'modern', 'build', 'system',
+        'office', 'notice', 'memo', 'ref', 'subject', 'dear', 'sir', 'madam', 'please', 'find', 'attached',
+        'technology', 'science', 'details', 'registration', 'november', 'october', 'september', 'august',
+        'july', 'june', 'may', 'april', 'march', 'february', 'january', 'december', 'sunday', 'monday',
+        'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'like', 'handle', 'mixed', 'convert',
+        'converter', 'smart', 'engine', 'input', 'output', 'word', 'words', 'font', 'fonts', 'download'
+      ]);
+
+      // Extended ANSI characters characteristic of SutonnyMJ (escaped cleanly)
+      var BIJOY_EXTENDED_RE = /[\u2020\u2021\u2030\u0160\u0152\u017D\u2018\u2019\u201C\u201D\u2022\u2013\u2014\u02DC\u2122\u0161\u203A\u0153\u017E\u0178\u00A1-\u00FF\u0192\u201E\u2026]/;
+
+      // Strong ASCII Bijoy orthographic signatures
+      var BIJOY_STRONG_RE = /(Av|ev|Avg|wP|wK|wQ|wR|wZ|w`|wb|wc|we|wf|wg|wh|wi|wj|wk|wl|wm|wn|Kv|Lv|Mv|Nv|Pv|Qv|Rv|Sv|Uv|Vv|Wv|Xv|Yv|Zv|_v|`v|av|bv|cv|dv|fv|gv|hv|iv|jv|kv|lv|mv|nv|ov|pv|qv|Kx|Lx|Mx|Nx|Px|Qx|Rx|Sx|Ux|Vx|Wx|Xx|Yx|Zx|_x|`x|ax|bx|cx|dx|ex|fx|gx|hx|ix|jx|kx|lx|mx|nx|Ky|Ly|My|Ny|Py|Qy|Ry|Sy|Uy|Vy|Wy|Xy|Yy|Zy|_y|`y|ay|by|cy|dy|ey|fy|gy|hy|iy|jy|ky|ly|my|ny|Kz|Lz|Mz|Nz|Pz|Qz|Rz|Sz|Uz|Vz|Wz|Xz|Yz|Zz|_z|`z|az|bz|cz|dz|ez|fz|gz|hz|iz|jz|kz|lz|mz|nz|K~|M~|P~|R~|Z~|`~|b~|c~|e~|f~|g~|i~|j~|k~|l~|m~|n~|&[K-Za-z_`~]|`[a-zA-Z]|_[a-zA-Z]|[A-Za-z]\||^[w][K-Za-z_`]|^[A-Z_`][vwxyzu~&])/;
+
+      var URL_OR_EMAIL_RE = /^(https?:\/\/|www\.|[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}|[a-zA-Z0-9-]+\.(com|org|net|edu|gov|bd|io|js|html|css|pdf|txt))$/i;
+
+      function classifyToken(token, protectEnglish) {
+        if (!token || /^\s+$/.test(token)) {
+          return 'neutral';
+        }
+
+        // 1. Unicode Bengali block (\u0980 - \u09FF)
+        if (/[\u0980-\u09FF]/.test(token)) {
+          return 'unicode';
+        }
+
+        // 2. Standalone Bijoy Dari '|'
+        if (token === '|') {
+          return 'bijoy';
+        }
+
+        // 3. Pure digits or standard neutral punctuation
+        if (/^[0-9.,!?;:'"()[\]{}\-\u2013\u2014/\\@#$%^*+=<>~`]+$/.test(token)) {
+          return 'neutral';
+        }
+
+        // 4. URLs, Emails, Domains
+        if (URL_OR_EMAIL_RE.test(token)) {
+          return 'english';
+        }
+
+        // 5. Unmistakable Bijoy extended ANSI characters
+        if (BIJOY_EXTENDED_RE.test(token)) {
+          return 'bijoy';
+        }
+
+        var stripped = token.replace(/^[("'\u201C\u2018[\]{}]+|[)"'\u201D\u2019[\]{}.,!?;:|]+$/g, '');
+        if (!stripped) {
+          return 'neutral';
+        }
+
+        // 6. Protect English dictionary & standard English casing
+        if (protectEnglish) {
+          var lower = stripped.toLowerCase();
+          if (COMMON_ENGLISH_WORDS.has(lower)) {
+            return 'english';
+          }
+
+          // Common English suffixes (-tion, -ment, -ing, -ness, -able, -ful, -ous, -ity, -ly, -ed, -er, -es)
+          if (/^[A-Za-z]{4,}(tion|ment|ing|ness|able|ible|ful|ous|ity|ize|ise|ally|ed|er|ly)$/i.test(stripped) && !BIJOY_STRONG_RE.test(stripped)) {
+            return 'english';
+          }
+
+          if (/^[a-z]{3,}$/.test(stripped) && !BIJOY_STRONG_RE.test(stripped) && /[aeiouy]/.test(stripped)) {
+            return 'english';
+          }
+
+          if (/^[A-Z][a-z]{2,}$/.test(stripped) && !BIJOY_STRONG_RE.test(stripped)) {
+            return 'english';
+          }
+
+          if (/^[A-Z]{2,}$/.test(stripped) && !BIJOY_STRONG_RE.test(stripped)) {
+            return 'english';
+          }
+        }
+
+        // 7. Strong Bijoy ASCII patterns
+        if (BIJOY_STRONG_RE.test(token)) {
+          return 'bijoy';
+        }
+
+        // 8. Mixed uppercase consonant + lowercase kar patterns (e.g., K‡i, Avgvi, evsjv)
+        if (/[A-Z_`~&|]/.test(stripped) && /[a-z]/.test(stripped)) {
+          return 'bijoy';
+        }
+
+        // 9. Single uppercase letter: 'I' and 'A' in English context vs Bijoy consonant
+        if (/^[IA]$/.test(stripped) && protectEnglish) {
+          return 'english';
+        }
+
+        return protectEnglish ? 'english' : 'bijoy';
+      }
+
+      function analyzeText(text, protectEnglish) {
+        if (!text || !text.trim()) {
+          return {
+            summaryType: 'empty',
+            label: 'Waiting for input...',
+            bijoyCount: 0,
+            unicodeCount: 0,
+            englishCount: 0,
+            bijoyPct: 0,
+            unicodePct: 0,
+            englishPct: 0,
+            tokens: []
+          };
+        }
+
+        var rawTokens = text.split(/(\s+)/);
+        var classified = [];
+        var i;
+
+        for (i = 0; i < rawTokens.length; i++) {
+          var tok = rawTokens[i];
+          var type = classifyToken(tok, protectEnglish);
+          classified.push({ text: tok, type: type });
+        }
+
+        // Contextual pass 1: Resolve ambiguous single-letter 'A' / 'I' surrounded by Bijoy words
+        for (i = 0; i < classified.length; i++) {
+          var item = classified[i];
+          var clean = item.text.trim();
+          if (clean === 'A' || clean === 'I') {
+            var prevT = null;
+            var nextT = null;
+            for (var p1 = i - 1; p1 >= 0; p1--) {
+              if (classified[p1].type !== 'neutral') { prevT = classified[p1].type; break; }
+            }
+            for (var n1 = i + 1; n1 < classified.length; n1++) {
+              if (classified[n1].type !== 'neutral') { nextT = classified[n1].type; break; }
+            }
+            if (prevT === 'bijoy' && nextT === 'bijoy') {
+              item.type = 'bijoy';
+            }
+          }
+        }
+
+        // Contextual pass 2: Standalone digits next to Bijoy or Unicode words
+        for (i = 0; i < classified.length; i++) {
+          var curr = classified[i];
+          if (curr.type === 'neutral' && /^[0-9]+$/.test(curr.text.trim())) {
+            var prevType = null;
+            var nextType = null;
+            for (var p = i - 1; p >= 0; p--) {
+              if (classified[p].type !== 'neutral') {
+                prevType = classified[p].type;
+                break;
+              }
+            }
+            for (var n = i + 1; n < classified.length; n++) {
+              if (classified[n].type !== 'neutral') {
+                nextType = classified[n].type;
+                break;
+              }
+            }
+            if (prevType === 'bijoy' || nextType === 'bijoy') {
+              curr.type = 'bijoy';
+            } else if (prevType === 'unicode' || nextType === 'unicode') {
+              curr.type = 'unicode';
+            }
+          }
+        }
+
+        var bijoyCount = 0;
+        var unicodeCount = 0;
+        var englishCount = 0;
+
+        for (i = 0; i < classified.length; i++) {
+          if (!classified[i].text.trim()) continue;
+          if (classified[i].type === 'bijoy') bijoyCount++;
+          else if (classified[i].type === 'unicode') unicodeCount++;
+          else englishCount++;
+        }
+
+        var totalMeaningful = bijoyCount + unicodeCount + englishCount;
+        var bijoyPct = totalMeaningful ? Math.round((bijoyCount / totalMeaningful) * 100) : 0;
+        var unicodePct = totalMeaningful ? Math.round((unicodeCount / totalMeaningful) * 100) : 0;
+        var englishPct = totalMeaningful ? Math.max(0, 100 - bijoyPct - unicodePct) : 0;
+
+        var summaryType = 'english';
+        var label = 'Detected: English / Neutral Text';
+
+        if (bijoyCount > 0 && unicodeCount > 0) {
+          summaryType = 'mixed';
+          label = 'Detected: Mixed (Bijoy + Unicode)';
+        } else if (bijoyCount > 0) {
+          summaryType = 'bijoy';
+          label = 'Detected: Pure Bijoy (ANSI)';
+        } else if (unicodeCount > 0) {
+          summaryType = 'unicode';
+          label = 'Detected: Pure Unicode Bangla';
+        }
+
+        return {
+          summaryType: summaryType,
+          label: label,
+          bijoyCount: bijoyCount,
+          unicodeCount: unicodeCount,
+          englishCount: englishCount,
+          bijoyPct: bijoyPct,
+          unicodePct: unicodePct,
+          englishPct: englishPct,
+          tokens: classified
+        };
+      }
+
+      /**
+       * Generate smart correction candidates for a given source & converted token
+       */
+      function getCorrectionSuggestions(sourceText, convertedText, sourceType, targetScript) {
+        var suggestions = [];
+        var seen = new Set();
+
+        function addOption(word, label) {
+          if (!word || seen.has(word)) return;
+          seen.add(word);
+          suggestions.push({ word: word, label: label });
+        }
+
+        // 1. Current converted output
+        addOption(convertedText, 'Converted');
+
+        // 2. Common Bangla orthographic & Bijoy ambiguity variants
+        if (targetScript === 'unicode') {
+          var bijoyForced = bijoyToUnicode(sourceText);
+          addOption(bijoyForced, 'Bijoy → Unicode');
+
+          // Ambiguous single/double vowel & Ra/Ba/Ya/Khanda-Ta/Chandrabindu variants
+          var variants = [
+            // 'র' vs 'ব' vs 'ড়'
+            [convertedText.replace(/\u09B0/g, '\u09DC'), 'র → ড়'],
+            [convertedText.replace(/\u09DC/g, '\u09B0'), 'ড় → র'],
+            // 'ে' vs 'ৈ' vs 'ো'
+            [convertedText.replace(/\u09C7/g, '\u09CB'), 'ে → ো'],
+            [convertedText.replace(/\u09CB/g, '\u09C7'), 'ো → ে'],
+            // 'ি' vs 'ী' and 'ু' vs 'ূ'
+            [convertedText.replace(/\u09BF/g, '\u09C0'), 'ি → ী'],
+            [convertedText.replace(/\u09C0/g, '\u09BF'), 'ী → ি'],
+            [convertedText.replace(/\u09C1/g, '\u09C2'), 'ু → ূ'],
+            [convertedText.replace(/\u09C2/g, '\u09C1'), 'ূ → ু'],
+            // 'ত' vs 'ৎ'
+            [convertedText.replace(/\u09A4$/g, '\u09CE'), 'ত → ৎ'],
+            [convertedText.replace(/\u09CE/g, '\u09A4'), 'ৎ → ত'],
+            // 'য' vs 'য়'
+            [convertedText.replace(/\u09AF/g, '\u09DF'), 'য → য়'],
+            [convertedText.replace(/\u09DF/g, '\u09AF'), 'য় → য'],
+            // 'ঙ' vs 'ং'
+            [convertedText.replace(/\u0982/g, '\u0999'), 'ং → ঙ'],
+            [convertedText.replace(/\u0999/g, '\u0982'), 'ঙ → ং']
+          ];
+
+          for (var i = 0; i < variants.length; i++) {
+            if (variants[i][0] !== convertedText) {
+              addOption(variants[i][0], variants[i][1]);
+            }
+          }
+        } else {
+          // Target is Bijoy ANSI
+          var unicodeForced = unicodeToBijoy(sourceText);
+          addOption(unicodeForced, 'Unicode → Bijoy');
+        }
+
+        // 3. Keep original source unchanged (useful if an English/technical term was misclassified)
+        addOption(sourceText, 'Keep Original (' + sourceType.toUpperCase() + ')');
+
+        return suggestions.slice(0, 7);
+      }
+
+      function convert(text, mode, protectEnglish) {
+        var analysis = analyzeText(text, protectEnglish);
+        if (!text) {
+          return { output: '', analysis: analysis, effectiveTarget: 'unicode', tokenMap: [] };
+        }
+
+        var effectiveMode = mode;
+
+        if (mode === 'auto-normalize') {
+          if (analysis.summaryType === 'unicode') {
+            effectiveMode = 'smart-to-bijoy';
+          } else {
+            effectiveMode = 'smart-to-unicode';
+          }
+        }
+
+        var targetScript = (effectiveMode === 'smart-to-bijoy') ? 'bijoy' : 'unicode';
+        var tokenMap = [];
+        var inCursor = 0;
+        var outCursor = 0;
+        var outputParts = [];
+
+        for (var i = 0; i < analysis.tokens.length; i++) {
+          var tok = analysis.tokens[i];
+          var convertedPart = tok.text;
+
+          if (targetScript === 'bijoy' && tok.type === 'unicode') {
+            convertedPart = unicodeToBijoy(tok.text);
+          } else if (targetScript === 'unicode' && tok.type === 'bijoy') {
+            convertedPart = bijoyToUnicode(tok.text);
+          }
+
+          tokenMap.push({
+            index: i,
+            type: tok.type,
+            sourceText: tok.text,
+            outputText: convertedPart,
+            inStart: inCursor,
+            inEnd: inCursor + tok.text.length,
+            outStart: outCursor,
+            outEnd: outCursor + convertedPart.length,
+            isWhitespace: /^\s+$/.test(tok.text)
+          });
+
+          inCursor += tok.text.length;
+          outCursor += convertedPart.length;
+          outputParts.push(convertedPart);
+        }
+
+        return {
+          output: outputParts.join(''),
+          analysis: analysis,
+          effectiveTarget: targetScript,
+          tokenMap: tokenMap
+        };
+      }
+
+      return {
+        bijoyToUnicode: bijoyToUnicode,
+        unicodeToBijoy: unicodeToBijoy,
+        analyzeText: analyzeText,
+        convert: convert,
+        getCorrectionSuggestions: getCorrectionSuggestions
+      };
+    })();
+
+    /**
+     * ===========================================================================
+     * UI CONTROLLER (WITH SYNCHRONIZED HIGHLIGHT & SUGGESTION DROPDOWN)
+     * ===========================================================================
+     */
+    document.addEventListener('DOMContentLoaded', function () {
+      var inputEl = document.getElementById('input-text');
+      var inputBackdrop = document.getElementById('input-backdrop');
+      var syncStatusHint = document.getElementById('sync-status-hint');
+      var outputEl = document.getElementById('output-text');
+      var modeBtns = document.querySelectorAll('.mode-btn');
+      var toggleLive = document.getElementById('toggle-live');
+      var toggleEnglish = document.getElementById('toggle-english');
+      var btnConvertNow = document.getElementById('btn-convert-now');
+      var btnCopy = document.getElementById('btn-copy');
+      var btnDownload = document.getElementById('btn-download');
+      var btnClear = document.getElementById('btn-clear');
+      var btnPaste = document.getElementById('btn-paste');
+      var btnSwap = document.getElementById('btn-swap');
+      var btnLoadSample = document.getElementById('btn-load-sample');
+      var btnToggleFont = document.getElementById('btn-toggle-font');
+      var btnToggleTheme = document.getElementById('btn-toggle-theme');
+      var btnOpenAbout = document.getElementById('btn-open-about');
+      var btnCloseAbout = document.getElementById('btn-close-about');
+      var aboutModal = document.getElementById('about-modal');
+      var themeIconMoon = document.getElementById('theme-icon-moon');
+      var themeIconSun = document.getElementById('theme-icon-sun');
+      var themeLabel = document.getElementById('theme-label');
+      var outputFontLabel = document.getElementById('output-font-label');
+      var outputFormatPill = document.getElementById('output-format-pill');
+
+      // Suggestion Popover Elements
+      var suggestionPopover = document.getElementById('suggestion-popover');
+      var suggestionSourceText = document.getElementById('suggestion-source-text');
+      var suggestionList = document.getElementById('suggestion-list');
+      var btnCloseSuggestions = document.getElementById('btn-close-suggestions');
+
+      // Status & Counters
+      var detectionBadge = document.getElementById('detection-badge');
+      var detectionText = document.getElementById('detection-text');
+      var segmentBreakdown = document.getElementById('segment-breakdown');
+      var activeRuleDesc = document.getElementById('active-rule-desc');
+      var inputChars = document.getElementById('input-chars');
+      var inputWords = document.getElementById('input-words');
+      var outputChars = document.getElementById('output-chars');
+      var outputWords = document.getElementById('output-words');
+      var tokenVisualizer = document.getElementById('token-visualizer');
+
+      // Composition Bar
+      var barBijoy = document.getElementById('bar-bijoy');
+      var barUnicode = document.getElementById('bar-unicode');
+      var barEnglish = document.getElementById('bar-english');
+      var pctBijoy = document.getElementById('pct-bijoy');
+      var pctUnicode = document.getElementById('pct-unicode');
+      var pctEnglish = document.getElementById('pct-english');
+
+      // Inspector Toggle
+      var btnToggleInspector = document.getElementById('btn-toggle-inspector');
+      var inspectorBody = document.getElementById('inspector-body');
+      var inspectorChevron = document.getElementById('inspector-chevron');
+
+      var currentMode = 'smart-to-unicode';
+      var currentTargetScript = 'unicode';
+      var currentTokenMap = [];
+      var activeTokenIndex = -1;
+      var isAnsiPreviewFont = false;
+      var toastTimer = null;
+
+      var PRESETS = {
+        bijoy: 'Avgvi \u2020mvbvi evsjv, Avwg \u2020Zvgvq fv\u2021jvevwm|\nwPiw`b \u2020Zvgvi AvKvk, \u2020Zvgvi evZvm Avgvi c\u00D6v\u00C5 evRvq euvwk|',
+        unicode: '\u0995\u09CD\u09B7\u09AE\u09BE, \u099C\u09CD\u099E\u09BE\u09A8, \u09AC\u09CD\u09B0\u09BE\u09B9\u09CD\u09AE\u09A3, \u09B0\u09BE\u09B7\u09CD\u099F\u09CD\u09B0, \u09B2\u0995\u09CD\u09B7\u09CD\u09AE\u09C0, \u0989\u099C\u09CD\u099C\u09CD\u09AC\u09B2, \u0986\u09A8\u09CD\u09A4\u09B0\u09CD\u099C\u09BE\u09A4\u09BF\u0995, \u09B6\u09CD\u09B0\u09A6\u09CD\u09A7\u09BE\u099E\u09CD\u099C\u09B2\u09BF\u0964 \u09E7\u09E8\u09E9\u09EA\u09EB\u09EC\u09ED\u09EE\u09EF\u09E6\u0964',
+        mixed: 'Avgvi \u2020mvbvi evsjv, Avwg \u2020Zvgvq fv\u2021jvevwm|\n\u099A\u09BF\u09B0\u09A6\u09BF\u09A8 \u09A4\u09CB\u09AE\u09BE\u09B0 \u0986\u0995\u09BE\u09B6, \u09A4\u09CB\u09AE\u09BE\u09B0 \u09AC\u09BE\u09A4\u09BE\u09B8 \u0986\u09AE\u09BE\u09B0 \u09AA\u09CD\u09B0\u09BE\u09A3\u09C7 \u09AC\u09BE\u099C\u09BE\u09DF \u09AC\u09BE\u0981\u09B6\u09BF\u0964\n\nevsjv\u2021`\u2021ki \u09B8\u09CD\u09AC\u09BE\u09A7\u09C0\u09A8\u09A4\u09BE \u0993 \u09B8\u09BE\u09B0\u09CD\u09AC\u09AD\u09CC\u09AE\u09A4\u09CD\u09AC \u09B0\u0995\u09CD\u09B7\u09BE\u09DF 1971 mv\u2021j \u09B2\u0995\u09CD\u09B7 \u09AA\u09CD\u09B0\u09BE\u09A3 \u0989\u09CE\u09B8\u09B0\u09CD\u0997 \u09B9\u09DF\u09C7\u099B\u09BF\u09B2\u0964\nModern web apps like BanglaBridge handle Mixed Text \u2014 \u09AF\u09C7\u09AE\u09A8: c\u00D6hyw\u00B3 (Technology), we\u00C1vb (Science), \u098F\u09AC\u0982 \u0986\u09A8\u09CD\u09A4\u09B0\u09CD\u099C\u09BE\u09A4\u09BF\u0995 \u09AF\u09CB\u0997\u09BE\u09AF\u09CB\u0997!\nContact: support@banglabridge.org | Website: https://banglabridge.org'
+      };
+
+      var MODE_DESCRIPTIONS = {
+        'smart-to-unicode': 'Converts Bijoy tokens \u2192 Unicode; preserves Unicode & English',
+        'smart-to-bijoy': 'Converts Unicode tokens \u2192 Bijoy ANSI; preserves Bijoy & English',
+        'auto-normalize': 'Auto-detects script & normalizes mixed Bijoy + Unicode cleanly'
+      };
+
+      function showToast(message) {
+        var toast = document.getElementById('toast');
+        var toastMsg = document.getElementById('toast-message');
+        toastMsg.textContent = message;
+        toast.classList.add('show');
+
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () {
+          toast.classList.remove('show');
+        }, 2500);
+      }
+
+      function updateCounts(text, charEl, wordEl) {
+        charEl.textContent = text.length.toLocaleString();
+        var trimmed = text.trim();
+        wordEl.textContent = trimmed ? trimmed.split(/\s+/).length.toLocaleString() : '0';
+      }
+
+      function escapeHtml(str) {
+        return str
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;');
+      }
+
+      // -----------------------------------------------------------------------
+      // SYNCHRONIZED INPUT HIGHLIGHTER
+      // -----------------------------------------------------------------------
+      function renderInputHighlight(tokenEntry) {
+        var fullInput = inputEl.value;
+        if (!tokenEntry || tokenEntry.isWhitespace || !fullInput) {
+          inputBackdrop.innerHTML = escapeHtml(fullInput);
+          syncStatusHint.textContent = 'Click word to highlight • Double-click for suggestions';
+          syncStatusHint.style.color = '';
+          return;
+        }
+
+        var before = escapeHtml(fullInput.slice(0, tokenEntry.inStart));
+        var target = escapeHtml(fullInput.slice(tokenEntry.inStart, tokenEntry.inEnd));
+        var after = escapeHtml(fullInput.slice(tokenEntry.inEnd));
+
+        inputBackdrop.innerHTML = before + '<mark class="sync-highlight" id="active-sync-mark">' + target + '</mark>' + after;
+        inputBackdrop.scrollTop = inputEl.scrollTop;
+
+        syncStatusHint.innerHTML = 'Source: <strong style="color:var(--amber-800);">' + target + '</strong> (Double-click output word for fixes)';
+
+        // Smoothly scroll input textarea if highlighted token is out of view
+        var markEl = document.getElementById('active-sync-mark');
+        if (markEl) {
+          var markTop = markEl.offsetTop;
+          var viewTop = inputEl.scrollTop;
+          var viewBottom = viewTop + inputEl.clientHeight;
+          if (markTop < viewTop + 20 || markTop > viewBottom - 40) {
+            inputEl.scrollTop = Math.max(0, markTop - 60);
+            inputBackdrop.scrollTop = inputEl.scrollTop;
+          }
+        }
+      }
+
+      // Keep backdrop scroll synced with input textarea scroll
+      inputEl.addEventListener('scroll', function () {
+        inputBackdrop.scrollTop = inputEl.scrollTop;
+      });
+
+      function findTokenAtOutputCursor(cursorPos) {
+        if (!currentTokenMap || currentTokenMap.length === 0) return null;
+
+        for (var i = 0; i < currentTokenMap.length; i++) {
+          var t = currentTokenMap[i];
+          if (!t.isWhitespace && cursorPos >= t.outStart && cursorPos <= t.outEnd) {
+            return t;
+          }
+        }
+        return null;
+      }
+
+      // -----------------------------------------------------------------------
+      // FLOATING CORRECTION SUGGESTION DROPDOWN
+      // -----------------------------------------------------------------------
+      function hideSuggestions() {
+        suggestionPopover.classList.remove('visible');
+      }
+
+      function showSuggestionsForToken(tokenEntry, anchorEvent) {
+        if (!tokenEntry || tokenEntry.isWhitespace) {
+          hideSuggestions();
+          return;
+        }
+
+        activeTokenIndex = tokenEntry.index;
+        renderInputHighlight(tokenEntry);
+
+        var candidates = BanglaBridge.getCorrectionSuggestions(
+          tokenEntry.sourceText,
+          tokenEntry.outputText,
+          tokenEntry.type,
+          currentTargetScript
+        );
+
+        suggestionSourceText.textContent = tokenEntry.sourceText;
+        suggestionList.innerHTML = candidates.map(function (item, idx) {
+          return (
+            '<button type="button" class="suggestion-item' + (idx === 0 ? ' active-item' : '') + '" data-replacement="' + escapeHtml(item.word).replace(/"/g, '&quot;') + '">' +
+              '<span class="suggestion-word">' + escapeHtml(item.word) + '</span>' +
+              '<span class="suggestion-meta">' + escapeHtml(item.label) + '</span>' +
+            '</button>'
+          );
+        }).join('');
+
+        // Position popover near click/cursor inside viewport
+        var rect = outputEl.getBoundingClientRect();
+        var left = rect.left + 20;
+        var top = rect.top + 52;
+
+        if (anchorEvent && typeof anchorEvent.clientX === 'number') {
+          left = Math.min(window.innerWidth - 310, Math.max(12, anchorEvent.clientX - 40));
+          top = Math.min(window.innerHeight - 260, Math.max(12, anchorEvent.clientY + 18));
+        }
+
+        suggestionPopover.style.left = left + 'px';
+        suggestionPopover.style.top = top + 'px';
+        suggestionPopover.classList.add('visible');
+
+        // Attach click handlers to suggestion items
+        var itemBtns = suggestionList.querySelectorAll('.suggestion-item');
+        for (var i = 0; i < itemBtns.length; i++) {
+          itemBtns[i].addEventListener('click', function () {
+            var chosen = this.getAttribute('data-replacement');
+            applyTokenReplacement(tokenEntry, chosen);
+            hideSuggestions();
+          });
+        }
+      }
+
+      function applyTokenReplacement(tokenEntry, newWord) {
+        var outVal = outputEl.value;
+        var before = outVal.slice(0, tokenEntry.outStart);
+        var after = outVal.slice(tokenEntry.outEnd);
+        var delta = newWord.length - tokenEntry.outputText.length;
+
+        outputEl.value = before + newWord + after;
+
+        // Shift subsequent token output offsets so highlighting & subsequent fixes stay accurate
+        tokenEntry.outputText = newWord;
+        tokenEntry.outEnd += delta;
+        for (var i = tokenEntry.index + 1; i < currentTokenMap.length; i++) {
+          currentTokenMap[i].outStart += delta;
+          currentTokenMap[i].outEnd += delta;
+        }
+
+        updateCounts(outputEl.value, outputChars, outputWords);
+        renderInputHighlight(tokenEntry);
+        showToast('Updated to "' + newWord + '"');
+      }
+
+      // Sync manual user typing inside the output pane back to token offsets
+      function syncManualOutputEdit() {
+        var outVal = outputEl.value;
+        updateCounts(outVal, outputChars, outputWords);
+
+        var rawTokens = outVal.split(/(\s+)/);
+        var cursor = 0;
+        for (var i = 0; i < currentTokenMap.length && i < rawTokens.length; i++) {
+          currentTokenMap[i].outputText = rawTokens[i];
+          currentTokenMap[i].outStart = cursor;
+          currentTokenMap[i].outEnd = cursor + rawTokens[i].length;
+          cursor += rawTokens[i].length;
+        }
+
+        var pos = outputEl.selectionStart || 0;
+        var activeTok = findTokenAtOutputCursor(pos);
+        renderInputHighlight(activeTok);
+      }
+
+      // Single click: highlight corresponding source word in Input
+      outputEl.addEventListener('click', function () {
+        var cursorPos = outputEl.selectionStart || 0;
+        var tok = findTokenAtOutputCursor(cursorPos);
+        renderInputHighlight(tok);
+      });
+
+      // Double click: open floating Correction Suggestion Dropdown
+      outputEl.addEventListener('dblclick', function (e) {
+        var cursorPos = outputEl.selectionStart || 0;
+        var tok = findTokenAtOutputCursor(cursorPos);
+        if (tok) {
+          showSuggestionsForToken(tok, e);
+        } else {
+          hideSuggestions();
+        }
+      });
+
+      outputEl.addEventListener('keyup', function (e) {
+        if (e.key === 'Escape') {
+          hideSuggestions();
+          aboutModal.classList.remove('open');
+          return;
+        }
+        var cursorPos = outputEl.selectionStart || 0;
+        var tok = findTokenAtOutputCursor(cursorPos);
+        renderInputHighlight(tok);
+      });
+
+      outputEl.addEventListener('input', function () {
+        syncManualOutputEdit();
+      });
+
+      btnCloseSuggestions.addEventListener('click', hideSuggestions);
+
+      // About Modal Handlers
+      btnOpenAbout.addEventListener('click', function () {
+        aboutModal.classList.add('open');
+      });
+
+      btnCloseAbout.addEventListener('click', function () {
+        aboutModal.classList.remove('open');
+      });
+
+      aboutModal.addEventListener('click', function (e) {
+        if (e.target === aboutModal) {
+          aboutModal.classList.remove('open');
+        }
+      });
+
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+          hideSuggestions();
+          aboutModal.classList.remove('open');
+        }
+      });
+
+      function updateAnalysisUI(analysis) {
+        detectionText.textContent = analysis.label;
+        detectionBadge.className = 'detection-badge';
+
+        if (analysis.summaryType === 'mixed') {
+          detectionBadge.classList.add('badge-mixed');
+          segmentBreakdown.textContent = '(' + analysis.bijoyCount + ' Bijoy, ' + analysis.unicodeCount + ' Unicode, ' + analysis.englishCount + ' EN/Neutral)';
+        } else if (analysis.summaryType === 'bijoy') {
+          detectionBadge.classList.add('badge-bijoy');
+          segmentBreakdown.textContent = '(' + analysis.bijoyCount + ' Bijoy, ' + analysis.englishCount + ' EN/Neutral)';
+        } else if (analysis.summaryType === 'unicode') {
+          detectionBadge.classList.add('badge-unicode');
+          segmentBreakdown.textContent = '(' + analysis.unicodeCount + ' Unicode, ' + analysis.englishCount + ' EN/Neutral)';
+        } else if (analysis.summaryType === 'english') {
+          detectionBadge.classList.add('badge-english');
+          segmentBreakdown.textContent = '(' + analysis.englishCount + ' EN/Neutral tokens)';
+        } else {
+          segmentBreakdown.textContent = '';
+        }
+
+        // Update Composition Bar
+        barBijoy.style.width = analysis.bijoyPct + '%';
+        barUnicode.style.width = analysis.unicodePct + '%';
+        barEnglish.style.width = analysis.englishPct + '%';
+        pctBijoy.textContent = analysis.bijoyPct + '%';
+        pctUnicode.textContent = analysis.unicodePct + '%';
+        pctEnglish.textContent = analysis.englishPct + '%';
+
+        // Render Token Classification Chips (first 45 non-whitespace tokens)
+        var nonSpaceTokens = analysis.tokens.filter(function (t) {
+          return t.text.trim().length > 0;
+        }).slice(0, 45);
+
+        if (nonSpaceTokens.length === 0) {
+          tokenVisualizer.innerHTML = '<span style="color: #94a3b8; font-style: italic;">Enter text above to inspect token classification...</span>';
+          return;
+        }
+
+        tokenVisualizer.innerHTML = nonSpaceTokens.map(function (tok) {
+          var safe = escapeHtml(tok.text);
+          if (tok.type === 'bijoy') {
+            return '<span class="tok-chip tok-bijoy" title="Detected as Bijoy ANSI">' + safe + '<span class="tok-chip-tag">BIJOY</span></span>';
+          }
+          if (tok.type === 'unicode') {
+            return '<span class="tok-chip tok-unicode" title="Detected as Unicode Bangla">' + safe + '<span class="tok-chip-tag">UNICODE</span></span>';
+          }
+          return '<span class="tok-chip tok-english" title="Protected English / Neutral">' + safe + '<span class="tok-chip-tag">EN</span></span>';
+        }).join('');
+      }
+
+      function setOutputFont(useAnsiFont) {
+        isAnsiPreviewFont = useAnsiFont;
+        if (useAnsiFont) {
+          outputEl.classList.remove('font-unicode');
+          outputEl.classList.add('font-bijoy-raw');
+          outputFontLabel.textContent = 'SutonnyMJ / ANSI (Mono)';
+        } else {
+          outputEl.classList.remove('font-bijoy-raw');
+          outputEl.classList.add('font-unicode');
+          outputFontLabel.textContent = 'Noto Sans Bengali (Unicode)';
+        }
+      }
+
+      function updateOutputHeaderBadge(targetScript) {
+        currentTargetScript = targetScript;
+        if (targetScript === 'bijoy') {
+          outputFormatPill.textContent = 'Bijoy ANSI Output';
+          outputFormatPill.className = 'pane-tag tag-bijoy';
+          setOutputFont(true);
+        } else {
+          outputFormatPill.textContent = 'Unicode Output';
+          outputFormatPill.className = 'pane-tag tag-unicode';
+          setOutputFont(false);
+        }
+      }
+
+      function runConversion(forceRun) {
+        var rawInput = inputEl.value;
+        updateCounts(rawInput, inputChars, inputWords);
+        renderInputHighlight(null);
+        hideSuggestions();
+
+        var protectEnglish = toggleEnglish.checked;
+        var result = BanglaBridge.convert(rawInput, currentMode, protectEnglish);
+        currentTokenMap = result.tokenMap || [];
+        updateAnalysisUI(result.analysis);
+
+        if (!toggleLive.checked && !forceRun) {
+          return;
+        }
+
+        outputEl.value = result.output;
+        updateCounts(result.output, outputChars, outputWords);
+        updateOutputHeaderBadge(result.effectiveTarget);
+      }
+
+      function setMode(newMode) {
+        currentMode = newMode;
+        for (var i = 0; i < modeBtns.length; i++) {
+          var btn = modeBtns[i];
+          if (btn.getAttribute('data-mode') === newMode) {
+            btn.classList.add('active');
+          } else {
+            btn.classList.remove('active');
+          }
+        }
+        activeRuleDesc.textContent = MODE_DESCRIPTIONS[newMode] || '';
+        runConversion(true);
+      }
+
+      // Bind Mode Buttons
+      for (var i = 0; i < modeBtns.length; i++) {
+        modeBtns[i].addEventListener('click', function () {
+          setMode(this.getAttribute('data-mode'));
+        });
+      }
+
+      // Bind Presets & Sample Cards
+      var presetTriggers = document.querySelectorAll('[data-preset]');
+      for (var j = 0; j < presetTriggers.length; j++) {
+        presetTriggers[j].addEventListener('click', function () {
+          var key = this.getAttribute('data-preset');
+          if (PRESETS[key]) {
+            inputEl.value = PRESETS[key];
+            if (key === 'unicode') {
+              setMode('smart-to-bijoy');
+            } else {
+              setMode('smart-to-unicode');
+            }
+            showToast('Loaded "' + key.toUpperCase() + '" sample text!');
+          }
+        });
+      }
+
+      btnLoadSample.addEventListener('click', function () {
+        inputEl.value = PRESETS.mixed;
+        setMode('smart-to-unicode');
+        showToast('Loaded mixed Bijoy + Unicode + English sample!');
+      });
+
+      inputEl.addEventListener('input', function () {
+        runConversion(false);
+      });
+
+      toggleLive.addEventListener('change', function () {
+        if (toggleLive.checked) runConversion(true);
+      });
+
+      toggleEnglish.addEventListener('change', function () {
+        runConversion(true);
+      });
+
+      btnConvertNow.addEventListener('click', function () {
+        runConversion(true);
+        showToast('Conversion completed!');
+      });
+
+      // Copy Output
+      btnCopy.addEventListener('click', function () {
+        if (!outputEl.value) {
+          showToast('Nothing to copy yet!');
+          return;
+        }
+        outputEl.select();
+        outputEl.setSelectionRange(0, 999999);
+        try {
+          document.execCommand('copy');
+          showToast('Converted output copied to clipboard!');
+        } catch (err) {
+          showToast('Press Ctrl+C / Cmd+C to copy');
+        }
+        if (window.getSelection) {
+          window.getSelection().removeAllRanges();
+        }
+      });
+
+      // Download .txt
+      btnDownload.addEventListener('click', function () {
+        if (!outputEl.value) {
+          showToast('Nothing to download yet!');
+          return;
+        }
+        var blob = new Blob([outputEl.value], { type: 'text/plain;charset=utf-8' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = isAnsiPreviewFont ? 'banglabridge-bijoy.txt' : 'banglabridge-unicode.txt';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast('Downloaded ' + a.download);
+      });
+
+      // Paste into Input
+      btnPaste.addEventListener('click', function () {
+        if (navigator.clipboard && navigator.clipboard.readText) {
+          navigator.clipboard.readText().then(function (clipText) {
+            if (clipText) {
+              inputEl.value = clipText;
+              runConversion(true);
+              showToast('Pasted from clipboard!');
+            }
+          }).catch(function () {
+            inputEl.focus();
+            showToast('Press Ctrl+V / Cmd+V to paste into input');
+          });
+        } else {
+          inputEl.focus();
+          showToast('Press Ctrl+V / Cmd+V to paste into input');
+        }
+      });
+
+      // Clear Input & Output
+      btnClear.addEventListener('click', function () {
+        inputEl.value = '';
+        outputEl.value = '';
+        runConversion(true);
+        inputEl.focus();
+        showToast('Cleared input and output');
+      });
+
+      // Swap Output to Input & Reverse Direction
+      btnSwap.addEventListener('click', function () {
+        if (!outputEl.value) {
+          showToast('Convert text first before swapping!');
+          return;
+        }
+        inputEl.value = outputEl.value;
+        if (currentMode === 'smart-to-unicode') {
+          setMode('smart-to-bijoy');
+        } else if (currentMode === 'smart-to-bijoy') {
+          setMode('smart-to-unicode');
+        } else {
+          runConversion(true);
+        }
+        showToast('Swapped output to input & reversed conversion direction!');
+      });
+
+      // Toggle Output Preview Font
+      btnToggleFont.addEventListener('click', function () {
+        setOutputFont(!isAnsiPreviewFont);
+      });
+
+      // Collapsible Inspector
+      var inspectorOpen = true;
+      btnToggleInspector.addEventListener('click', function () {
+        inspectorOpen = !inspectorOpen;
+        btnToggleInspector.setAttribute('aria-expanded', String(inspectorOpen));
+        if (inspectorOpen) {
+          inspectorBody.classList.remove('hidden');
+          inspectorChevron.classList.remove('collapsed');
+        } else {
+          inspectorBody.classList.add('hidden');
+          inspectorChevron.classList.add('collapsed');
+        }
+      });
+
+      // Initialize with Mixed Sample
+      inputEl.value = PRESETS.mixed;
+      runConversion(true);
+    });
+  </script>
+</body>
+</html>
